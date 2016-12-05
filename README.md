@@ -9,7 +9,8 @@ To run a secular triple (e.g. Fig.3 of Naoz et al 2013). First setup the triple
 as:
 
 
-> import kozaipy as kp\\
+> import kozaipy as kp
+>
 > import numpy as np
 
 > trip = kp.Triple(m0=1.0,m1=0.001,m2=0.04,a1=6.0,a2=100.0,e1=0.001,e2=0.6,I=65.0 * np.pi/180.0, g1=45.0 * np.pi/180.0,g2=0)
