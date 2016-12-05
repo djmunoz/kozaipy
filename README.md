@@ -1,4 +1,4 @@
-KozaiPy
+#KozaiPy
 
 Secular equations of motion for the evolution of triple systems with tidal friction
 
