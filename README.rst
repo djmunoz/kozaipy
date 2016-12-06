@@ -6,8 +6,8 @@ KOZAIPY - Secular equations of motion for the evolution of triple systems with t
 Welcome to KozaiPy!
 
 
-Examples
---------
+* Examples
+----------
 
 1. Orbital flips
 ----------------
