@@ -3,7 +3,11 @@ import scipy.integrate as integ
 import triples
 
 def integrate_triple_system(ics,timemax,Nevals,
-                            m0,m1,m2,R0,R1,
+                            m0,m1,m2,
+                            R0 = None,R1 = None,
+                            I0 = None, I1 = None,
+                            k20 = None, k21  = None,
+                            tv0 = None, tv1  = None,
                             octupole_potential = True,
                             short_range_forces_conservative= False,
                             short_range_forces_dissipative = False,
@@ -18,7 +22,8 @@ def integrate_triple_system(ics,timemax,Nevals,
 
     t = np.linspace(0,timemax,Nevals)
     sol=integ.odeint(threebody_ode_vf,ics,t,
-                     args=(m0,m1,m2,R0,R1,octupole_potential,\
+                     args=(m0,m1,m2,R0,R1,I0,I1,k20,k21,tv0,tv1,
+                           octupole_potential,\
                            short_range_forces_conservative,short_range_forces_dissipative,atol,),
                      atol=atol,rtol=rtol,mxstep=100000000,hmin=0.0000001)#,mxords=15)
 
@@ -26,7 +31,11 @@ def integrate_triple_system(ics,timemax,Nevals,
     return np.column_stack((t,sol))
     
     
-def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
+def threebody_ode_vf(y,t,m0,m1,m2,
+                     R0 = None,R1 = None,
+                     I0 = None, I1 = None,
+                     k20 = None, k21  = None,
+                     tv0 = None, tv1  = None,
                      octupole = True,
                      extra_forces_conservative = False,
                      extra_forces_dissipative = False,
@@ -124,13 +133,6 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
         ein = 0
         ein_squared = 0
 
-    rgstar = 0.08
-    rgplanet = 0.25
-    rg0, rg1 = rgstar, rgplanet
-    
-    I0 = rg0 * m0 * R0**2
-    I1 = rg1 * m1 * R1**2
-
     Omega0_u = (S0x * uinx + S0y * uiny + S0z * uinz) / I0
     Omega0_n = (S0x * ninx + S0y * niny + S0z * ninz) / I0
     Omega0_v = (S0x * vinx + S0y * viny + S0z * vinz) / I0
@@ -138,32 +140,6 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
     Omega1_u = (S1x * uinx + S1y * uiny + S1z * uinz) / I1
     Omega1_n = (S1x * ninx + S1y * niny + S1z * ninz) / I1
     Omega1_v = (S1x * vinx + S1y * viny + S1z * vinz) / I1
-
-    Pin = 2 * np.pi * np.sqrt(ain * ain * ain / triples.constants.G / (m0 + m1))
-    Pout = 2 * np.pi * np.sqrt(aout * aout * aout /triples.constants.G / (m0 + m1 + m2))
-    mu = m0 * m1 / (m0 +  m1)
-
-    tau = 2* Pout**2 /3 /np.pi / Pin * (m0 + m1 + m2)/m2 *  (1 - eout**2)**1.5
-
-    C = 1.0/3/tau / np.sqrt(1 - ein**2)
-
-
-    S_uv = C  * (-3 * (noutx * uinx + nouty * uiny + noutz * uinz) * 
-                (noutx * vinx + nouty * viny + noutz * vinz) )
-
-    S_uu = C  * (1 - 3 * (noutx * uinx + nouty * uiny + noutz * uinz) * 
-                (noutx * uinx + nouty * uiny + noutz * uinz))
-
-    S_vv = C  * (1 - 3 * (noutx * vinx + nouty * viny + noutz * vinz) * 
-                (noutx * vinx + nouty * viny + noutz * vinz))
-
-    S_vn = C  * (-3 * (noutx * vinx + nouty * viny + noutz * vinz) * 
-                (noutx * ninx + nouty * niny + noutz * ninz))
-
-    S_un = C  * (-3 * (noutx * uinx + nouty * uiny + noutz * uinz) * 
-                (noutx * ninx + nouty * niny + noutz * ninz))
-    
-
 
     
     if (extra_forces_conservative):
@@ -251,24 +227,6 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
     ##########################################################################
     # System of differential equations
 
-
-    deinx_dt = ein * (-one_minus_einsq * (5 * S_uv * uinx - (4 * S_uu - S_vv) * vinx \
-                                           + S_vn * ninx))
-    
-    deiny_dt = ein * (-one_minus_einsq * (5 * S_uv * uiny - (4 * S_uu - S_vv) * viny \
-                                           + S_vn * niny))
-    
-    deinz_dt = ein * (-one_minus_einsq * (5 * S_uv * uinz - (4 * S_uu - S_vv) * vinz\
-                                               + S_vn * ninz))
-    
-    dhinx_dt = hin * (one_minus_einsq * S_vn * uinx - (4 * ein_squared + 1) * S_un * vinx \
-                      + 5 * ein_squared * S_uv * ninx)
-    
-    dhiny_dt = hin * (one_minus_einsq * S_vn * uiny - (4 * ein_squared + 1) * S_un * viny \
-                      + 5 * ein_squared * S_uv * niny)
-    
-    dhinz_dt = hin * (one_minus_einsq * S_vn * uinz - (4 * ein_squared + 1) * S_un * vinz\
-                      + 5 * ein_squared * S_uv * ninz)
 
     # Equations of motion at the quadrupole level:
     

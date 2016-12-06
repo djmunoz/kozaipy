@@ -192,7 +192,6 @@ class TripleSolution(object):
                                                       self.vectordata.l2x,self.vectordata.l2y,self.vectordata.l2z)
 
         if (octupole is True):
-            print "hehe"
             oct_pot = compute_octupole_potential(self.triple.m0,self.triple.m1,self.triple.m2,
                                                  self.vectordata.e1x,self.vectordata.e1y,self.vectordata.e1z,
                                                  self.vectordata.l1x,self.vectordata.l1y,self.vectordata.l1z,
@@ -211,7 +210,6 @@ class TripleSolution(object):
         if (Nlines is None):
             Nlines = len(self.vectordata.time)
 
-        print Nlines
         f = open(filename,'w')
         fmt_list = []
         f.write("# time\t\t")
@@ -274,14 +272,16 @@ class Triple(object):
 
         self.R0 = kwargs.get("R0") # radius of primary
         self.R1 = kwargs.get("R1") # radius of secondary
+
+        self.InertiaMoment0 = None # Moment of inertia of the first body
+        self.InertiaMoment1 = None # Moment of inertia of the second body
         
         # Secondary variables
-        self.masstype0 = kwargs.get("masstype0")
-        self.masstype1 = kwargs.get("masstype1")
-        self.masstype2 = kwargs.get("masstype2")
+        self.type0 = kwargs.get("type0")
+        self.type1 = kwargs.get("type1")
 
         
-        # Set default values
+        # Set default values for the orbits
         if (self.m0 is None): self.m0 = 1.0
         if (self.m1 is None): self.m1 = 1.0
         if (self.m2 is None): self.m2 = 1.0
@@ -294,31 +294,47 @@ class Triple(object):
         if (self.g2 is None): self.g2 = rd.random() * 2 * np.pi
         if (self.h1 is None): self.h1 = rd.random() * 2 * np.pi
         if (self.h2 is None): self.h2 = self.h1 - np.pi
-        if (self.spin_rate0 is None): self.spin_rate0 = 0.0
-        if (self.spin_rate1 is None): self.spin_rate1 = 0.0
-       
+        if (self.spin_rate0 is None): self.spin_rate0 = 1.0-9
+        if (self.spin_rate1 is None): self.spin_rate1 = 1.0-9
 
+        # Set default values for the bodies
         if (self.R0 is None): self.R0 = constants.Rsun
         if (self.R1 is None): self.R1 = constants.Rsun
 
+        if (self.type0 is None): self.type0 = 'star'
+        if (self.type1 is None): self.type1 = 'star'
+        
         # Compute individual inclinations
         L1 = self.m0 * self.m1/(self.m0 + self.m1) * np.sqrt((self.m0 + self.m1) * self.a1 * (1 - self.e1 * self.e1))
         L2 = (self.m0 + self.m1) * self.m2/(self.m0 + self.m1 + self.m2) * np.sqrt((self.m0 + self.m1 + self.m2) * self.a2 * (1 - self.e2 * self.e2))
-        print L1,L2,self.m0,self.m1,self.m2
         L  = np.sqrt(L1 * L1 + L2 * L2 + 2 * L1 * L2 * np.cos(self.I))
         self.I2 = np.arccos((L2 + L1 * np.cos(self.I))/L)
         self.I1 = self.I - self.I2
 
+        # Moments of inertia
+        if (self.type0 == 'star'): rg0 = get_gyroradius_star(self.m0)
+        elif (self.type0 == 'planet'): rg0 = get_gyroradius_planet(self.m0)
+
+        if (self.type1 == 'star'): rg1 = get_gyroradius_star(self.m1)
+        elif (self.type1 == 'planet'): rg1 = get_gyroradius_planet(self.m1)
+
+        self.InertiaMoment0 = rg0 * self.m0 * self.R0**2
+        self.InertiaMoment1 = rg1 * self.m1 * self.R1**2
+        
+
         # Compute the default spin *orientations*
         if (self.spin0 is None):
-            spin0 = 
-            self.spin0 = [self.spin_rate0 * np.sin(self.h1) * np.sin(self.I1),
-                          -self.spin_rate0 * np.cos(self.h1) * np.sin(self.I1), 
-                          self.spin_rate0 * np.cos(self.h1)]
-        if (self.spin1 is None): 
-            self.spin1 = [self.spin_rate1 * np.sin(self.h1) * np.sin(self.I1),
-                          -self.spin_rate1 * np.cos(self.h1) * np.sin(self.I1), 
-                          self.spin_rate1 * np.cos(self.h1)] 
+            spin0 = self.spin_rate0 * self.InertiaMoment0
+            self.spin0 = [spin0 * np.sin(self.h1) * np.sin(self.I1),
+                          -spin0 * np.cos(self.h1) * np.sin(self.I1), 
+                          spin0 * np.cos(self.h1)]
+        if (self.spin1 is None):
+            spin1 = self.spin_rate1 * self.InertiaMoment1
+            self.spin1 = [spin1 * np.sin(self.h1) * np.sin(self.I1),
+                          -spin1 * np.cos(self.h1) * np.sin(self.I1), 
+                          spin1 * np.cos(self.h1)] 
+
+
         
     def vector_form(self):
         """
@@ -330,8 +346,6 @@ class Triple(object):
         e1x = self.e1 * (np.cos(self.g1) * np.cos(self.h1) - np.sin(self.g1) * np.sin(self.h1) * np.cos(self.I1))
         e1y = self.e1 * (np.cos(self.g1) * np.sin(self.h1) + np.sin(self.g1) * np.cos(self.h1) * np.cos(self.I1))
         e1z = self.e1 * np.sin(self.g1) * np.sin(self.I1)
-        print e1x,e1y,e1z,np.sqrt(e1x**2+ e1y**2 + e1z**2)
-        print self.h1,self.g1,self.I1
         
         l1  = np.sqrt(constants.G * self.a1 * (self.m0 + self.m1) * (1 - self.e1 * self.e1))
         l1x = l1 * np.sin(self.h1) * np.sin(self.I1)
@@ -363,9 +377,14 @@ class Triple(object):
 
         vector_ics = self.vector_form()
         
-        solution = integrate_triple_system(vector_ics,timemax,Nevals, self.m0,self.m1,self.m2,self.R0,self.R1,
-                                           octupole_potential,\
-                                           short_range_forces_conservative,short_range_forces_dissipative)
+        solution = integrate_triple_system(vector_ics,timemax,Nevals, self.m0,self.m1,self.m2,\
+                                           R0=self.R0,R1=self.R1,
+                                           I0=self.InertiaMoment0, I1=self.InertiaMoment1,
+                                           k20 = None, k21  = None,
+                                           tv0 = None, tv1  = None,
+                                           octupole_potential=octupole_potential,\
+                                           short_range_forces_conservative=short_range_forces_conservative,
+                                           short_range_forces_dissipative=short_range_forces_dissipative)
         
 
         triple_solution = TripleSolution(self,vector_solution = solution)
@@ -435,3 +454,13 @@ def compute_octupole_potential(m0,m1,m2,e1x,e1y,e1z,l1x,l1y,l1z,e2x,e2y,e2z,l2x,
            10 * e1 * (1 - e1 * e1) * u1dotn2 * n1dotu2 * n1dotn2)
 
     return pot
+
+
+
+
+def get_gyroradius_star(m):
+    return 0.08
+
+
+def get_gyroradius_planet(m):
+    return 0.25

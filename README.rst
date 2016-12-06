@@ -19,7 +19,8 @@ as:
    import kozaipy as kp
    import numpy as np
 
-   trip = kp.Triple(m0=1.0,m1=0.001,m2=0.04,a1=6.0,a2=100.0,e1=0.001,e2=0.6,I=65.0 * np.pi/180.0, g1=45.0 * np.pi/180.0,g2=0)
+   trip = kp.Triple(m0=1.0,m1=0.001,m2=0.04,a1=6.0,a2=100.0,e1=0.001,e2=0.6,\
+	  I=65.0 * np.pi/180.0, g1=45.0 * np.pi/180.0,g2=0)
 
 And then evolve the system for 2.5e7 years
 
@@ -39,6 +40,7 @@ To plot the inclination and eccentricity of the inner orbit, simply do
 	  
    import matplotlib.pyplot as plt
 
+   time = sol.vectordata.time
    incl1= sol.elementdata.I1
    ecc1 = sol.elementdata.e1
 
@@ -77,7 +79,7 @@ Following the model of Wu & Murray (2003), we can setup a triple that resultins 
 	  R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
 
 
-We integrate this sytem in time including tidal friction. For that, we turn on the two options:
+We integrate this sytem in time including tidal friction. For that, we turn on the two options 'short_range_forces_conservative' and 'short_range_forces_dissipative'
 
 .. code:: python
    
