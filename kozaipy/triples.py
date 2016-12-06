@@ -311,6 +311,7 @@ class Triple(object):
 
         # Compute the default spin *orientations*
         if (self.spin0 is None):
+            spin0 = 
             self.spin0 = [self.spin_rate0 * np.sin(self.h1) * np.sin(self.I1),
                           -self.spin_rate0 * np.cos(self.h1) * np.sin(self.I1), 
                           self.spin_rate0 * np.cos(self.h1)]

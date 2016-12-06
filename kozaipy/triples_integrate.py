@@ -120,15 +120,24 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
     uincrossnout_y = uinz * noutx - uinx * noutz
     uincrossnout_z = uinx * nouty - uiny * noutx
 
+    if (ein < 1e-7):
+        ein = 0
+        ein_squared = 0
 
+    rgstar = 0.08
+    rgplanet = 0.25
+    rg0, rg1 = rgstar, rgplanet
     
-    Omega0_u = (S0x * uinx + S0y * uiny + S0z * uinz)
-    Omega0_n = (S0x * ninx + S0y * niny + S0z * ninz)
-    Omega0_v = (S0x * vinx + S0y * viny + S0z * vinz)
+    I0 = rg0 * m0 * R0**2
+    I1 = rg1 * m1 * R1**2
+
+    Omega0_u = (S0x * uinx + S0y * uiny + S0z * uinz) / I0
+    Omega0_n = (S0x * ninx + S0y * niny + S0z * ninz) / I0
+    Omega0_v = (S0x * vinx + S0y * viny + S0z * vinz) / I0
     
-    Omega1_u = (S1x * uinx + S1y * uiny + S1z * uinz)
-    Omega1_n = (S1x * ninx + S1y * niny + S1z * ninz)
-    Omega1_v = (S1x * vinx + S1y * viny + S1z * vinz)
+    Omega1_u = (S1x * uinx + S1y * uiny + S1z * uinz) / I1
+    Omega1_n = (S1x * ninx + S1y * niny + S1z * ninz) / I1
+    Omega1_v = (S1x * vinx + S1y * viny + S1z * vinz) / I1
 
     Pin = 2 * np.pi * np.sqrt(ain * ain * ain / triples.constants.G / (m0 + m1))
     Pout = 2 * np.pi * np.sqrt(aout * aout * aout /triples.constants.G / (m0 + m1 + m2))
@@ -161,85 +170,82 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
         
         Qstar = 0.028
         Qplanet = 0.51
-        rgstar = 0.08
-        rgplanet = 0.25
         tvstar =   2.0e4 # in days, about 55 years
         tvplanet = 0.365242  # in days, about 0.001 years
         
-        Q1, Q2 = Qstar, Qplanet
+        Q0, Q1 = Qstar, Qplanet
         
-        tv1, tv2 = tvstar, tvplanet
+        tv0, tv1 = tvstar, tvplanet
         
-        rg1, rg2 = rgstar, rgplanet
-        
-        I1 = rg1 * m0 * R0**2
-        I2 = rg2 * m1 * R1**2
-        
+        k0 = 0.5 * Q0/(1 - Q0)
         k1 = 0.5 * Q1/(1 - Q1)
-        k2 = 0.5 * Q2/(1 - Q2)
+        
+        ein_fourth = ein_squared * ein_squared
+        ein_sixth = ein_fourth * ein_squared
 
 
+        V0 = 0
+                      
+        W0 = 0
+              
+        X0 = -1.0/norbit_in * m1 * k0 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_u / one_minus_einsq**2 
+        
+        Y0 = -1.0/norbit_in * m1 * k0 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_v / one_minus_einsq**2
+        
+        Z0 = 1.0/norbit_in * m1 * k0 * (R0/ain)**5 /mu * (0.5 * (2 * Omega0_n**2 - Omega0_u**2 - Omega0_v**2) / one_minus_einsq**2 \
+                                                        +15 * triples.constants.G * m1 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) / one_minus_einsq**5)
 
         V1 = 0
                       
         W1 = 0
-              
-        X1 = Pin/2/np.pi *(-m0 * k1 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_u / (1 - ein**2)**2) 
         
-        Y1 = Pin/2/np.pi *(-m0 * k1 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_v / (1 - ein**2)**2)
-        
-        Z1 = Pin/2/np.pi * m0 * k1 * (R0/ain)**5 /mu * (0.5*(2 * Omega0_n**2 - Omega0_u**2 - Omega0_v**2) / (1 - ein**2)**2 \
-                                                        +15* triples.constants.G * m1 / ain**3 *(1 + 1.5*ein**2 + 0.125*ein**4) / (1 - ein**2)**5)
-
-        V2 = 0
-                      
-        W2 = 0
-        
-        X2 = Pin/2/np.pi *(-m1 * k2 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_u / (1 - ein**2)**2)
+        X1 = -1.0/norbit_in * m0 * k1 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_u / one_minus_einsq**2
                 
-        Y2 = Pin/2/np.pi *(-m1 * k2 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_v / (1 - ein**2)**2)
+        Y1 = -1.0/norbit_in * m0 * k1 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_v / one_minus_einsq**2
         
-        Z2 = Pin/2/np.pi * m1 * k2 * (R1/ain)**5 /mu * (0.5*(2 * Omega1_n**2 - Omega1_u**2 - Omega1_v**2) / (1 - ein**2)**2 \
-                                                        +15 * triples.constants.G * m1 / ain**3 *(1 + 1.5*ein**2 + 0.125*ein**4) / (1 - ein**2)**5)
+        Z1 = 1.0/norbit_in * m0 * k1 * (R1/ain)**5 /mu * (0.5*(2 * Omega1_n**2 - Omega1_u**2 - Omega1_v**2) / one_minus_einsq**2 \
+                                                        +15 * triples.constants.G * m0 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) / one_minus_einsq**5)
         
         
-        ZGR = 3 * triples.constants.G * (m0 + m1) * 2 * np.pi / Pin / ain / triples.constants.CLIGHT / triples.constants.CLIGHT / (1 - ein**2)
+        ZGR = 3 * triples.constants.G * (m0 + m1) * norbit_in / ain / triples.constants.CLIGHT / triples.constants.CLIGHT / one_minus_einsq
     
 
         
 
         if (extra_forces_dissipative):
-        
-            tf1 = tv1/9 * (ain/R0)**8 * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k1)**2 
+
+            tf0 = tv0/9 * (ain/R0)**8 * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k0)**2 
             
-            tf2 = tv2/9 * (ain/R1)**8 * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k2)**2 
+            tf1 = tv1/9 * (ain/R1)**8 * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k1)**2 
         
-    
-            V1 += 9.0 / tf1 * ((1 + 15.0/4 * ein**2 + 15.0/8 * ein**4 + 5.0/64 * ein**6)/(1 - ein**2)**6.5 - \
-                              11.0/18 * Omega0_n* Pin/2/np.pi * (1 + 1.5 * ein**2 + 0.125 * ein**4)/( 1 - ein**2)**5)
-        
-            W1 += 1.0 / tf1 * ((1 + 15.0/2 * ein**2 + 45.0/8 * ein**4 + 5.0/16 * ein**6)/(1 - ein**2)**6.5 - \
-                              Omega0_n* Pin/2/np.pi * (1 + 3 * ein**2 + 0.375 * ein**4)/( 1 - ein**2)**5)    
+
+
             
-            X1 += Pin/2/np.pi *(-Omega0_v /2/tf1 * (1 + 4.5 * ein**2 + 0.625 * ein**4) / (1 - ein**2)**5)
+            V0 += 9.0 / tf0 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/one_minus_einsq**6.5 - \
+                               11.0/18 * Omega0_n / norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq**5)
         
-            Y1 += Pin/2/np.pi *(+ Omega0_u /2/tf1 * (1 + 1.5 * ein**2 + 0.125 * ein**4) / (1 - ein**2)**5)
+            W0 += 1.0 / tf0 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/one_minus_einsq**6.5 - \
+                              Omega0_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq**5)    
+            
+            X0 += -1.0/norbit_in * Omega0_v /2/tf0 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq**5
+        
+            Y0 += 1.0/norbit_in * Omega0_u /2/tf0 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq**5
             
 
         
-            V2 += 9.0 / tf2 * ((1 + 15.0/4 * ein**2 + 15.0/8 * ein**4 + 5.0/64 * ein**6)/(1 - ein**2)**6.5 - \
-                              11.0/18 * Omega1_n* Pin/2/np.pi * (1 + 1.5 * ein**2 + 0.125 * ein**4)/( 1 - ein**2)**5)
+            V1 += 9.0 / tf1 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/one_minus_einsq**6.5 - \
+                              11.0/18 * Omega1_n /norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq**5)
             
-            W2 += 1.0 / tf2 * ((1 + 15.0/2 * ein**2 + 45.0/8 * ein**4 + 5.0/16 * ein**6)/(1 - ein**2)**6.5 - \
-                              Omega1_n* Pin/2/np.pi * (1 + 3 * ein**2 + 0.375 * ein**4)/( 1 - ein**2)**5)    
+            W1 += 1.0 / tf1 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/one_minus_einsq**6.5 - \
+                              Omega1_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq**5)    
         
-            X2 += Pin/2/np.pi *(-Omega1_v /2/tf2 * (1 + 4.5 * ein**2 + 0.625 * ein**4) / (1 - ein**2)**5)
+            X1 += 1.0/norbit_in * (-Omega1_v /2/tf1 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq**5)
             
-            Y2 += Pin/2/np.pi *(+Omega1_u /2/tf2 * (1 + 1.5 * ein**2 + 0.125 * ein**4) / (1 - ein**2)**5)                    
+            Y1 += 1.0/norbit_in * (Omega1_u /2/tf1 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq**5)                    
 
     else:
+        V0, W0, X0, Y0, Z0 = 0, 0, 0, 0, 0
         V1, W1, X1, Y1, Z1 = 0, 0, 0, 0, 0
-        V2, W2, X2, Y2, Z2 = 0, 0, 0, 0, 0
         ZGR = 0
 
     ##########################################################################
@@ -468,30 +474,30 @@ def threebody_ode_vf(y,t,m0,m1,m2,R0,R1,
     
     if (extra_forces_conservative):
 
-        deinx_dt += ein * ((Z1 + Z2 + ZGR) * vinx -  (Y1 + Y2) * ninx - (V1 + V2) * uinx)
+        deinx_dt += ein * ((Z0 + Z1 + ZGR) * vinx -  (Y0 + Y1) * ninx - (V0 + V1) * uinx)
         
-        deiny_dt += ein * ((Z1 + Z2 + ZGR) * viny -  (Y1 + Y2) * niny - (V1 + V2) * uiny) 
+        deiny_dt += ein * ((Z0 + Z1 + ZGR) * viny -  (Y0 + Y1) * niny - (V0 + V1) * uiny) 
         
-        deinz_dt += ein * ((Z1 + Z2 + ZGR) * vinz -  (Y1 + Y2) * ninz - (V1 + V2) * uinz)
+        deinz_dt += ein * ((Z0 + Z1 + ZGR) * vinz -  (Y0 + Y1) * ninz - (V0 + V1) * uinz)
         
-        dhinx_dt += hin * ((Y1 + Y2) * uinx - (X1 + X2) * vinx - (W1 + W2) * ninx)
+        dhinx_dt += hin * ((Y0 + Y1) * uinx - (X0 + X1) * vinx - (W0 + W1) * ninx)
         
-        dhiny_dt += hin * ((Y1 + Y2) * uiny - (X1 + X2) * viny - (W1 + W2) * niny) 
+        dhiny_dt += hin * ((Y0 + Y1) * uiny - (X0 + X1) * viny - (W0 + W1) * niny) 
         
-        dhinz_dt += hin * ((Y1 + Y2) * uinz - (X1 + X2) * vinz - (W1 + W2) * ninz)
+        dhinz_dt += hin * ((Y0 + Y1) * uinz - (X0 + X1) * vinz - (W0 + W1) * ninz)
         
     
-        dS0x_dt += mu * hin / I1 * (- Y1 * uinx + X1 * vinx + W1 * ninx)
+        dS0x_dt += mu * hin * (- Y0 * uinx + X0 * vinx + W0 * ninx)
         
-        dS0y_dt += mu * hin / I1 * (- Y1 * uiny + X1 * viny + W1 * niny)
+        dS0y_dt += mu * hin * (- Y0 * uiny + X0 * viny + W0 * niny)
         
-        dS0z_dt += mu * hin / I1 * (- Y1 * uinz + X1 * vinz + W1 * ninz)
+        dS0z_dt += mu * hin * (- Y0 * uinz + X0 * vinz + W0 * ninz)
         
-        dS1x_dt += mu * hin / I2 * (- Y2 * uinx + X2 * vinx + W2 * ninx)
+        dS1x_dt += mu * hin * (- Y1 * uinx + X1 * vinx + W1 * ninx)
         
-        dS1y_dt += mu * hin / I2 * (- Y2 * uiny + X2 * viny + W2 * niny)
+        dS1y_dt += mu * hin * (- Y1 * uiny + X1 * viny + W1 * niny)
         
-        dS1z_dt += mu * hin / I2 * (- Y2 * uinz + X2 * vinz + W2 * ninz)
+        dS1z_dt += mu * hin * (- Y1 * uinz + X1 * vinz + W1 * ninz)
 
 
         
