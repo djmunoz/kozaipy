@@ -13,6 +13,7 @@ To run a secular triple (e.g. Fig.3 of Naoz et al 2013). First setup the triple
 as:
 
 .. code:: python
+	  
    import kozaipy as kp
    import numpy as np
 
@@ -21,10 +22,13 @@ as:
 And then evolve the system for 2.5e7 years
 
 .. code:: python
+	  
    sol = trip.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
 
 To plot the inclination and eccentricity of the inner orbit, simply do
+
 .. code:: python
+	  
    import matplotlib.pyplot as plt
 
    incl1= sol.elementdata.I1
