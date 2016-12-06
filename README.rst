@@ -17,6 +17,11 @@ as:
 
 And then evolve the system for 2.5e7 years
 
-> sol = t.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
+> sol = trip.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
 
 To plot the inclination and eccentricity of the inner orbit, simply do
+
+> import matplotlib.pyplot as plt
+
+> incl1= sol.elementdata.I1
+> ecc1 = sol.elementdata.e1
