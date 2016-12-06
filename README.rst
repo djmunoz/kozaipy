@@ -75,7 +75,7 @@ Following the model of Wu & Murray (2003), we can setup a triple that resultins 
    trip = kp.Triple(m0=1.0,m1=0.001,m2=1.1,a1=5.0,a2=1000.0,e1=0.1,e2=0.5,I=85.6 * np.pi/180.0, \
 	  g1=45.0 * np.pi/180.0,g2=0,\
 	  type0='star',type1='planet',\
-	  spin_rate0 = 2 * np.pi/20, spin_rate0 = 2 * np.pi/0.417, # periods of 20 days and 10 hours
+	  spin_rate0 = 2 * np.pi/20, spin_rate1 = 2 * np.pi/0.417, # periods of 20 days and 10 hours
 	  R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
 
 
