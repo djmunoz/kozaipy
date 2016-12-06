@@ -56,6 +56,7 @@ To plot the inclination and eccentricity of the inner orbit, simply do
 You can save the data into a text file by doing
 
 .. code:: python
+	  
    sol.save_to_file("test.txt",Nlines=None)
 
 where 'Nlines' allows you to set a lower number of lines than the original solution.
