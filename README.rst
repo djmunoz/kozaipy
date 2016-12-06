@@ -25,6 +25,12 @@ And then evolve the system for 2.5e7 years
 	  
    sol = trip.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
 
+The equations of motion are in the 'orbital vector form' (e.g., Eggleton, Kiseleva & Hut 1998; Fabrycky & Tremaine, 2007; Tremaine & Yavetz, 2014) and so is the solution ouput. If you want to analyze the orbital elements, first do:
+
+.. code:: python
+
+   sol.to_elements()
+
 To plot the inclination and eccentricity of the inner orbit, simply do
 
 .. code:: python
@@ -33,3 +39,16 @@ To plot the inclination and eccentricity of the inner orbit, simply do
 
    incl1= sol.elementdata.I1
    ecc1 = sol.elementdata.e1
+
+   fig = plt.figure(figsize=(15,5))
+   ax = plt.subplot(121)
+   ax.set_xlabel("time[yr]")
+   ax.set_ylabel("inclination[deg]")
+   ax.plot(time/365.25,incl1)
+  
+   
+   ax = plt.subplot(122)
+   ax.set_xlabel("time[yr]")
+   ax.set_ylabel("eccentricity")
+   ax.plot(time/365.25,ecc1)
+   plt.show()
