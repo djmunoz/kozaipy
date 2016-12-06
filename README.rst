@@ -6,10 +6,10 @@ KOZAIPY - Secular equations of motion for the evolution of triple systems with t
 Welcome to KozaiPy!
 
 
-* Examples
-----------
+Examples
+--------
 
-1. Orbital flips
+* 1. Orbital flips
 ----------------
 To run a secular triple (e.g. Fig.3 of Naoz et al 2013). First setup the triple
 as:
