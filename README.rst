@@ -62,3 +62,26 @@ You can save the data into a text file by doing
    sol.save_to_file("test.txt",Nlines=None)
 
 where 'Nlines' allows you to set a lower number of lines than the original solution.
+
+2. High-e migration: HD80606b 
+------------------------------
+
+Following the model of Wu & Murray (2003), we can setup a triple that resultins in a configuration similar to that of HD80606b
+
+.. code:: python
+
+   trip = kp.Triple(m0=1.0,m1=0.001,m2=1.1,a1=5.0,a2=1000.0,e1=0.1,e2=0.5,I=85.6 * np.pi/180.0, g1=45.0 * np.pi/180.0,g2=0,type0='star',type1='planet',R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
+
+
+We integrate this sytem in time including tidal friction. For that, we turn on the two options:
+
+.. code:: python
+   
+   sol = trip.integrate(timemax=4.0e9*365.25,Nevals=50000,\
+	  octupole_potential=False,\
+	  short_range_forces_conservative=True, \
+	  short_range_forces_dissipative=True)
+
+Note that we also turn off the octupole potential for now, for easier comparison with Wu & Murray (2003) and Fabrycky & Tremaine (2007):
+
+
