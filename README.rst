@@ -9,7 +9,7 @@ Welcome to KozaiPy!
 Examples
 --------
 
-1. Orbital flips
+1. **Orbital flips**
 
    To run a secular triple (e.g. Fig.3 of Naoz et al 2013). First setup the triple
 as:
@@ -65,7 +65,7 @@ You can save the data into a text file by doing
 
 where 'Nlines' allows you to set a lower number of lines than the original solution.
 
-2. High-e migration: HD80606b 
+2. **High-e migration: HD80606b **
 
 
 Following the model of Wu & Murray (2003), we can setup a triple that resultins in a configuration similar to that of HD80606b
