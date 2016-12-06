@@ -27,7 +27,7 @@ And then evolve the system for 2.5e7 years
 	  
    sol = trip.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
 
-The equations of motion are in the 'orbital vector form' (e.g., Eggleton, Kiseleva & Hut 1998; Fabrycky & Tremaine, 2007; Tremaine & Yavetz, 2014) and so is the solution ouput. If you want to analyze the orbital elements, first do:
+The equations of motion are in the 'orbital vector form' (e.g., Eggleton, Kiseleva & Hut 1998; Fabrycky & Tremaine, 2007; Tremaine & Yavetz, 2014) and so is the solution output. If you want to analyze the orbital elements, first do:
 
 .. code:: python
 
@@ -70,7 +70,11 @@ Following the model of Wu & Murray (2003), we can setup a triple that resultins 
 
 .. code:: python
 
-   trip = kp.Triple(m0=1.0,m1=0.001,m2=1.1,a1=5.0,a2=1000.0,e1=0.1,e2=0.5,I=85.6 * np.pi/180.0, g1=45.0 * np.pi/180.0,g2=0,type0='star',type1='planet',R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
+   trip = kp.Triple(m0=1.0,m1=0.001,m2=1.1,a1=5.0,a2=1000.0,e1=0.1,e2=0.5,I=85.6 * np.pi/180.0, \
+	  g1=45.0 * np.pi/180.0,g2=0,\
+	  type0='star',type1='planet',\
+	  spin_rate0 = 2 * np.pi/20, spin_rate0 = 2 * np.pi/0.417, # periods of 20 days and 10 hours
+	  R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
 
 
 We integrate this sytem in time including tidal friction. For that, we turn on the two options:
