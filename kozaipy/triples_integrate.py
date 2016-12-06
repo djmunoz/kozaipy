@@ -6,7 +6,7 @@ def integrate_triple_system(ics,timemax,Nevals,
                             m0,m1,m2,
                             R0 = None,R1 = None,
                             I0 = None, I1 = None,
-                            k20 = None, k21  = None,
+                            k2_0 = None, k2_1  = None,
                             tv0 = None, tv1  = None,
                             octupole_potential = True,
                             short_range_forces_conservative= False,
@@ -22,7 +22,7 @@ def integrate_triple_system(ics,timemax,Nevals,
 
     t = np.linspace(0,timemax,Nevals)
     sol=integ.odeint(threebody_ode_vf,ics,t,
-                     args=(m0,m1,m2,R0,R1,I0,I1,k20,k21,tv0,tv1,
+                     args=(m0,m1,m2,R0,R1,I0,I1,k2_0,k2_1,tv0,tv1,
                            octupole_potential,\
                            short_range_forces_conservative,short_range_forces_dissipative,atol,),
                      atol=atol,rtol=rtol,mxstep=100000000,hmin=0.0000001)#,mxords=15)
@@ -34,7 +34,7 @@ def integrate_triple_system(ics,timemax,Nevals,
 def threebody_ode_vf(y,t,m0,m1,m2,
                      R0 = None,R1 = None,
                      I0 = None, I1 = None,
-                     k20 = None, k21  = None,
+                     k2_0 = None, k2_1  = None,
                      tv0 = None, tv1  = None,
                      octupole = True,
                      extra_forces_conservative = False,
@@ -45,6 +45,7 @@ def threebody_ode_vf(y,t,m0,m1,m2,
     #####################################################################
     #time-dependent variables ###########################################
 
+    
     # for the inner binary
     einx = y[0]
     einy = y[1]
@@ -75,11 +76,14 @@ def threebody_ode_vf(y,t,m0,m1,m2,
 
     ####################################################
     # Some quantities defined for convenience
+    mu = m0 * m1 / (m0 + m1)
     
     ein_squared = einx**2 + einy**2 + einz**2
     ein = np.sqrt(ein_squared)
     one_minus_einsq = 1 - ein_squared
     one_minus_einsq_sqrt = np.sqrt(one_minus_einsq)
+    one_minus_einsq_squared = one_minus_einsq * one_minus_einsq
+    one_minus_einsq_fifth =  one_minus_einsq_squared * one_minus_einsq_squared * one_minus_einsq
     hin = np.sqrt(hinx**2 + hiny**2 + hinz**2)
 
     eout_squared = eoutx**2 + eouty**2 + eoutz**2
@@ -153,34 +157,45 @@ def threebody_ode_vf(y,t,m0,m1,m2,
         
         tv0, tv1 = tvstar, tvplanet
         
-        k0 = 0.5 * Q0/(1 - Q0)
-        k1 = 0.5 * Q1/(1 - Q1)
+        k2_0 = 0.5 * Q0/(1 - Q0)
+        k2_1 = 0.5 * Q1/(1 - Q1)
         
         ein_fourth = ein_squared * ein_squared
         ein_sixth = ein_fourth * ein_squared
 
+        size_ratio0 = R0/ain
+        size_ratio0_fifth = size_ratio0 * size_ratio0 * size_ratio0 * size_ratio0 * size_ratio0
+        size_ratio0_eighth = size_ratio0 * size_ratio0 * size_ratio0 * size_ratio0_fifth
+        size_ratio1 = R1/ain
+        size_ratio1_fifth = size_ratio1 * size_ratio1 * size_ratio1 * size_ratio1 * size_ratio1
+        size_ratio1_eighth = size_ratio1 * size_ratio1 * size_ratio1 * size_ratio1_fifth
 
+
+        
+        
         V0 = 0
                       
         W0 = 0
-              
-        X0 = -1.0/norbit_in * m1 * k0 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_u / one_minus_einsq**2 
+
+        X0 = -1.0/norbit_in * m1 * k2_0 * size_ratio0_fifth / mu  *  Omega0_n *  Omega0_u / one_minus_einsq_squared
         
-        Y0 = -1.0/norbit_in * m1 * k0 * (R0/ain)**5 / mu  *  Omega0_n *  Omega0_v / one_minus_einsq**2
+        Y0 = -1.0/norbit_in * m1 * k2_0 * size_ratio0_fifth / mu  *  Omega0_n *  Omega0_v / one_minus_einsq_squared
         
-        Z0 = 1.0/norbit_in * m1 * k0 * (R0/ain)**5 /mu * (0.5 * (2 * Omega0_n**2 - Omega0_u**2 - Omega0_v**2) / one_minus_einsq**2 \
-                                                        +15 * triples.constants.G * m1 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) / one_minus_einsq**5)
+        Z0 = 1.0/norbit_in * m1 * k2_0 * size_ratio0_fifth /mu * (0.5 * (2 * Omega0_n**2 - Omega0_u**2 - Omega0_v**2) / one_minus_einsq_squared \
+                                                                  +15 * triples.constants.G * m1 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) /\
+                                                                  one_minus_einsq_fifth)
 
         V1 = 0
                       
         W1 = 0
         
-        X1 = -1.0/norbit_in * m0 * k1 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_u / one_minus_einsq**2
+        X1 = -1.0/norbit_in * m0 * k2_1 * size_ratio1_fifth / mu  *  Omega1_n *  Omega1_u / one_minus_einsq_squared
                 
-        Y1 = -1.0/norbit_in * m0 * k1 * (R1/ain)**5 / mu  *  Omega1_n *  Omega1_v / one_minus_einsq**2
+        Y1 = -1.0/norbit_in * m0 * k2_1 * size_ratio1_fifth / mu  *  Omega1_n *  Omega1_v / one_minus_einsq_squared
         
-        Z1 = 1.0/norbit_in * m0 * k1 * (R1/ain)**5 /mu * (0.5*(2 * Omega1_n**2 - Omega1_u**2 - Omega1_v**2) / one_minus_einsq**2 \
-                                                        +15 * triples.constants.G * m0 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) / one_minus_einsq**5)
+        Z1 = 1.0/norbit_in * m0 * k2_1 * size_ratio1_fifth /mu * (0.5*(2 * Omega1_n**2 - Omega1_u**2 - Omega1_v**2) / one_minus_einsq_squared \
+                                                        +15 * triples.constants.G * m0 / ain**3 *(1 + 1.5*ein_squared + 0.125*ein_fourth) / \
+                                                                  one_minus_einsq_fifth)
         
         
         ZGR = 3 * triples.constants.G * (m0 + m1) * norbit_in / ain / triples.constants.CLIGHT / triples.constants.CLIGHT / one_minus_einsq
@@ -190,34 +205,37 @@ def threebody_ode_vf(y,t,m0,m1,m2,
 
         if (extra_forces_dissipative):
 
-            tf0 = tv0/9 * (ain/R0)**8 * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k0)**2 
+            tf0 = tv0/9 / size_ratio0_eighth * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k2_0)**2 
             
-            tf1 = tv1/9 * (ain/R1)**8 * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k1)**2 
-        
+            tf1 = tv1/9 / size_ratio1_eighth * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k2_1)**2 
 
 
             
-            V0 += 9.0 / tf0 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/one_minus_einsq**6.5 - \
-                               11.0/18 * Omega0_n / norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq**5)
-        
-            W0 += 1.0 / tf0 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/one_minus_einsq**6.5 - \
-                              Omega0_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq**5)    
+            V0 += 9.0 / tf0 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/\
+                               one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
+                               11.0/18 * Omega0_n / norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq_fifth)
+
+            W0 += 1.0 / tf0 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/\
+                               one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
+                               Omega0_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq_fifth)    
             
-            X0 += -1.0/norbit_in * Omega0_v /2/tf0 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq**5
+            X0 += -1.0/norbit_in * Omega0_v /2/tf0 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq_fifth
         
-            Y0 += 1.0/norbit_in * Omega0_u /2/tf0 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq**5
+            Y0 += 1.0/norbit_in * Omega0_u /2/tf0 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq_fifth
             
 
         
-            V1 += 9.0 / tf1 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/one_minus_einsq**6.5 - \
-                              11.0/18 * Omega1_n /norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq**5)
+            V1 += 9.0 / tf1 * ((1 + 15.0/4 * ein_squared + 15.0/8 * ein_fourth + 5.0/64 * ein_sixth)/\
+                               one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
+                               11.0/18 * Omega1_n /norbit_in * (1 + 1.5 * ein_squared + 0.125 * ein_fourth)/one_minus_einsq_fifth)
             
-            W1 += 1.0 / tf1 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/one_minus_einsq**6.5 - \
-                              Omega1_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq**5)    
-        
-            X1 += 1.0/norbit_in * (-Omega1_v /2/tf1 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq**5)
+            W1 += 1.0 / tf1 * ((1 + 15.0/2 * ein_squared + 45.0/8 * ein_fourth + 5.0/16 * ein_sixth)/\
+                               one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
+                               Omega1_n / norbit_in * (1 + 3 * ein_squared + 0.375 * ein_fourth)/one_minus_einsq_fifth)    
             
-            Y1 += 1.0/norbit_in * (Omega1_u /2/tf1 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq**5)                    
+            X1 += 1.0/norbit_in * (-Omega1_v /2/tf1 * (1 + 4.5 * ein_squared + 0.625 * ein_fourth) / one_minus_einsq_fifth)
+            
+            Y1 += 1.0/norbit_in * (Omega1_u /2/tf1 * (1 + 1.5 * ein_squared + 0.125 * ein_fourth) / one_minus_einsq_fifth)                    
 
     else:
         V0, W0, X0, Y0, Z0 = 0, 0, 0, 0, 0

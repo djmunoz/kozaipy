@@ -380,7 +380,7 @@ class Triple(object):
         solution = integrate_triple_system(vector_ics,timemax,Nevals, self.m0,self.m1,self.m2,\
                                            R0=self.R0,R1=self.R1,
                                            I0=self.InertiaMoment0, I1=self.InertiaMoment1,
-                                           k20 = None, k21  = None,
+                                           k2_0 = None, k2_1  = None,
                                            tv0 = None, tv1  = None,
                                            octupole_potential=octupole_potential,\
                                            short_range_forces_conservative=short_range_forces_conservative,

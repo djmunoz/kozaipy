@@ -1,6 +1,7 @@
-__all__ = ['Triple',
+__all__ = ['constants',
+           'Triple',
            'TripleSolution']
 
-from triples import Triple, TripleSolution
+from triples import Triple, TripleSolution,constants
 
 
