@@ -57,6 +57,14 @@ To plot the inclination and eccentricity of the inner orbit, simply do
    ax.plot(time/365.25,ecc1)
    plt.show()
 
+
+You should get something like this:
+
+.. image:: https://github.com/djmunoz/kozaipy/tree/master/example_figures/orbital_flips.png
+   :height: 100px
+   :width: 200 px
+   :scale: 50 %
+	   
 You can save the data into a text file by doing
 
 .. code:: python
@@ -64,6 +72,8 @@ You can save the data into a text file by doing
    sol.save_to_file("test.txt",Nlines=None)
 
 where 'Nlines' allows you to set a lower number of lines than the original solution.
+
+
 
 2. **High-e migration: HD80606b**
 
