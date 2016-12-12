@@ -62,7 +62,7 @@ You should get something like this:
 
 .. class:: no-web
 	   
-   .. image:: https://raw.githubusercontent.com/djmunoz/kozaipy/tree/master/example_figures/orbital_flips.png
+   .. image:: example_figures/orbital_flips.png
       :height: 100px
       :width: 200 px
       :scale: 100 %
