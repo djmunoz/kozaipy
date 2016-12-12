@@ -59,8 +59,11 @@ To plot the inclination and eccentricity of the inner orbit, simply do
 
 
 You should get something like this:
+
 .. class:: no-web
+	   
    .. image:: https://github.com/djmunoz/kozaipy/tree/master/example_figures/orbital_flips.png
+	      
       :height: 100px
       :width: 200 px
       :scale: 100 %
