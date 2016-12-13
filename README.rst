@@ -103,3 +103,10 @@ We integrate this sytem in time including tidal friction. For that, we turn on t
 Note that we also turn off the octupole potential for now, for easier comparison with Wu & Murray (2003) and Fabrycky & Tremaine (2007):
 
 
+.. class:: no-web
+	   
+   .. image:: example_figures/orbital_decay.png
+      :height: 100px
+      :width: 200 px
+      :scale: 100 %
+	   
