@@ -95,7 +95,7 @@ We integrate this sytem in time including tidal friction. For that, we turn on t
 
 .. code:: python
    
-   sol = trip.integrate(timemax=4.0e9*365.25,Nevals=50000,\
+   sol = trip.integrate(timemax=3.4e9*365.25,Nevals=12000,\
 	  octupole_potential=False,\
 	  short_range_forces_conservative=True, \
 	  short_range_forces_dissipative=True)
@@ -110,3 +110,4 @@ Note that we also turn off the octupole potential for now, for easier comparison
       :width: 200 px
       :scale: 100 %
 	   
+The dissipative forces make the system of ODEs stiff, and turning them on can slow down this integration from a few seconds to up to an hour. I am still working on this, but a speed up will probably require a purpose-specific ODE solver rather than using the ODEPACK routines implemented in scipy.
