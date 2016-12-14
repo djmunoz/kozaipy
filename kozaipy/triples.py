@@ -8,10 +8,53 @@ import numpy.random as rd
 from triples_integrate import integrate_triple_system
 
 
+rd.seed(42)
 
 #__all__ = ['Triple','TripleSolution','PhysicalProperties']
 
 
+triple_keys = {"e1x": None,
+               "e1y": None,
+               "e1z": None,
+               "l1x": None,
+               "l1y": None,
+               "l1z": None,
+               "e2x": None,
+               "e2y": None,
+               "e2z": None,
+               "l2x": None,
+               "l2y": None,
+               "l2z": None,                     
+               "spin0x": None,
+               "spin0y": None,
+               "spin0z": None,
+               "spin1x": None,
+               "spin1y": None,
+               "spin1z": None,
+               "Omega0x": None,
+               "Omega0y": None,
+               "Omega0z": None,
+               "Omega1x": None,
+               "Omega1y": None,
+               "Omega1z": None,
+               "m0": None,
+               "m1": None,
+               "m2": None,
+               "R0": None,
+               "R1": None}
+
+triple_data = {"m0": False,
+               "m1": False,
+               "m2": False,
+               "inner_orbit": True,
+               "outer_orbit": True,
+               "spin0": False,
+               "spin1": False,
+               "pseudosynch0": False,
+               "pseudosynch1": False,               
+               }
+
+               
 class Constants(object):
 
     def __init__(self,*args,**kwargs):
@@ -28,6 +71,27 @@ class Constants(object):
         
 constants = Constants()
 
+
+class BodyProperties(object):
+    def __init__(self,*args,**kwargs):
+        self.mass_type = kwargs.get("mass_type")
+        self.mass = kwargs.get("mass")
+        self.radius = kwargs.get("radius")
+        self.gyroradius = kwargs.get("gyroradius")
+        self.apsidal_constant = kwargs.get("apsidal_constant")
+        self.viscous_time = kwargs.get("viscous_time")
+
+        
+        # Set defaults
+        if (self.mass_type is None): self.mass_type = 'pointmass'
+        if (self.mass is None):  self.mass = 1.0
+        if (self.radius is None): self.radius = 0.0
+        if (self.gyroradius is None): self.gyroradius = 0.0
+        if (self.apsidal_constant is None): self.apsidal_constant = 0.0
+        if (self.viscous_time is None): self.viscous_time = np.inf
+
+        
+        
 class VectorData(object):
     def __init__(self,*args,**kwargs):
         self.time = kwargs.get("time")
@@ -38,12 +102,18 @@ class VectorData(object):
         self.l1x = kwargs.get("l1x")
         self.l1y = kwargs.get("l1y")
         self.l1z = kwargs.get("l1z")        
+        self.spin0x = kwargs.get("spin0x")
+        self.spin0y = kwargs.get("spin0y")
+        self.spin0z = kwargs.get("spin0z")
         self.spin1x = kwargs.get("spin1x")
         self.spin1y = kwargs.get("spin1y")
         self.spin1z = kwargs.get("spin1z")
-        self.spin2x = kwargs.get("spin2x")
-        self.spin2y = kwargs.get("spin2y")
-        self.spin2z = kwargs.get("spin2z")        
+        self.Omega0x = kwargs.get("Omega0x")
+        self.Omega0y = kwargs.get("Omega0y")
+        self.Omega0z = kwargs.get("Omega0z")
+        self.Omega1x = kwargs.get("Omega1x")
+        self.Omega1y = kwargs.get("Omega1y")
+        self.Omega1z = kwargs.get("Omega1z") 
         # for the outer orbit
         self.e2x = kwargs.get("e2x")
         self.e2y = kwargs.get("e2y")
@@ -61,12 +131,18 @@ class ElementData(object):
         self.I1 = kwargs.get("I1")
         self.g1 = kwargs.get("g1")
         self.h1 = kwargs.get("h1")        
+        self.spin0x = kwargs.get("spin0x")
+        self.spin0y = kwargs.get("spin0y")
+        self.spin0z = kwargs.get("spin0z")
         self.spin1x = kwargs.get("spin1x")
         self.spin1y = kwargs.get("spin1y")
         self.spin1z = kwargs.get("spin1z")
-        self.spin2x = kwargs.get("spin2x")
-        self.spin2y = kwargs.get("spin2y")
-        self.spin2z = kwargs.get("spin2z")        
+        self.Omega0x = kwargs.get("Omega0x")
+        self.Omega0y = kwargs.get("Omega0y")
+        self.Omega0z = kwargs.get("Omega0z")
+        self.Omega1x = kwargs.get("Omega1x")
+        self.Omega1y = kwargs.get("Omega1y")
+        self.Omega1z = kwargs.get("Omega1z") 
         # for the outer orbit
         self.e2 = kwargs.get("e2")
         self.a2 = kwargs.get("a2")
@@ -92,53 +168,42 @@ class TripleSolution(object):
         self.triple = Triple
         self.vectordata =  VectorData()
         self.elementdata =  ElementData()
-        if (vector_solution is None):
-            # individually supplied orbital data
-            # data *arrays*
-            self.vectordata.time = kwargs.get("time")
-            # for the inner orbit
-            self.vectordata.e1x = kwargs.get("e1x")
-            self.vectordata.e1y = kwargs.get("e1y")
-            self.vectordata.e1z = kwargs.get("e1z")
-            self.vectordata.l1x = kwargs.get("l1x")
-            self.vectordata.l1y = kwargs.get("l1y")
-            self.vectordata.l1z = kwargs.get("l1z")        
-            self.vectordata.spin1x = kwargs.get("spin1x")
-            self.vectordata.spin1y = kwargs.get("spin1y")
-            self.vectordata.spin1z = kwargs.get("spin1z")
-            self.vectordata.spin2x = kwargs.get("spin2x")
-            self.vectordata.spin2y = kwargs.get("spin2y")
-            self.vectordata.spin2z = kwargs.get("spin2z")        
-            # for the outer orbit
-            self.vectordata.e2x = kwargs.get("e2x")
-            self.vectordata.e2y = kwargs.get("e2y")
-            self.vectordata.e2z = kwargs.get("e2z")
-            self.vectordata.l2x = kwargs.get("l2x")
-            self.vectordata.l2y = kwargs.get("l2y")
-            self.vectordata.l2z = kwargs.get("l2z")
-        else:
+
+        # individually supplied orbital data
+        # data *arrays*
+        self.vectordata.time = kwargs.get("time")
+        # for the inner orbit
+        self.vectordata.e1x = kwargs.get("e1x")
+        self.vectordata.e1y = kwargs.get("e1y")
+        self.vectordata.e1z = kwargs.get("e1z")
+        self.vectordata.l1x = kwargs.get("l1x")
+        self.vectordata.l1y = kwargs.get("l1y")
+        self.vectordata.l1z = kwargs.get("l1z")        
+        self.vectordata.spin0x = kwargs.get("spin0x")
+        self.vectordata.spin0y = kwargs.get("spin0y")
+        self.vectordata.spin0z = kwargs.get("spin0z")
+        self.vectordata.spin1x = kwargs.get("spin1x")
+        self.vectordata.spin1y = kwargs.get("spin1y")
+        self.vectordata.spin1z = kwargs.get("spin1z")        
+        # for the outer orbit
+        self.vectordata.e2x = kwargs.get("e2x")
+        self.vectordata.e2y = kwargs.get("e2y")
+        self.vectordata.e2z = kwargs.get("e2z")
+        self.vectordata.l2x = kwargs.get("l2x")
+        self.vectordata.l2y = kwargs.get("l2y")
+        self.vectordata.l2z = kwargs.get("l2z")
+
+        if (vector_solution is not None):
             # data supplied at once as a matrix
             self.vectordata.time = vector_solution[:,0] 
-            # for the inner orbit
-            self.vectordata.e1x = vector_solution[:,1]
-            self.vectordata.e1y = vector_solution[:,2]
-            self.vectordata.e1z = vector_solution[:,3]
-            self.vectordata.l1x = vector_solution[:,4]
-            self.vectordata.l1y = vector_solution[:,5]
-            self.vectordata.l1z = vector_solution[:,6]
-            self.vectordata.spin1x = vector_solution[:,13] 
-            self.vectordata.spin1y = vector_solution[:,14]
-            self.vectordata.spin1z = vector_solution[:,15]
-            self.vectordata.spin2x = vector_solution[:,16]
-            self.vectordata.spin2y = vector_solution[:,17]
-            self.vectordata.spin2z = vector_solution[:,18]
-            # for the outer orbit
-            self.vectordata.e2x = vector_solution[:,7]
-            self.vectordata.e2y = vector_solution[:,8]
-            self.vectordata.e2z = vector_solution[:,9]
-            self.vectordata.l2x = vector_solution[:,10]
-            self.vectordata.l2y = vector_solution[:,11]
-            self.vectordata.l2z = vector_solution[:,12]
+
+            for key,val in self.vectordata.__dict__.items():
+                if (key == 'time'): continue
+                if triple_keys[key] is not None:
+                    print key
+                    setattr(self.vectordata, key,  vector_solution[:,1+triple_keys[key]])
+
+
 
     def to_elements(self,to_degrees = True):
         """
@@ -177,12 +242,23 @@ class TripleSolution(object):
             self.elementdata.h2 *= 180.0 / np.pi 
             self.elementdata.g2 *= 180.0 / np.pi              
 
+        self.elementdata.spin0x = self.vectordata.spin0x
+        self.elementdata.spin0y = self.vectordata.spin0y            
+        self.elementdata.spin0z = self.vectordata.spin0z            
         self.elementdata.spin1x = self.vectordata.spin1x
         self.elementdata.spin1y = self.vectordata.spin1y            
-        self.elementdata.spin1z = self.vectordata.spin1z            
-        self.elementdata.spin2x = self.vectordata.spin2x
-        self.elementdata.spin2y = self.vectordata.spin2y            
-        self.elementdata.spin2z = self.vectordata.spin2z
+        self.elementdata.spin1z = self.vectordata.spin1z
+
+    def add_body_properties(self, body_index, quantity):
+        if (quantity == 'InertiaMoment'):
+            if callable(self.triple.properties0.radius):
+                radius0  = np.asarray([self.triple.properties0.radius(r) for r in self.vectordata.time])
+                print "hello"
+                print self.vectordata.time
+            else:
+                radius0 = np.repeat(self.triple.properties0.radius,self.vectordata.time.shape[0])
+            self.InertiaMoment0 = self.triple.properties0.gyroradius * self.triple.m0 * radius0 * radius0
+        
 
     def compute_potential(self,octupole = True):
         self.potential = compute_quadrupole_potential(self.triple.m0,self.triple.m1,self.triple.m2,
@@ -250,7 +326,10 @@ class Triple(object):
     """
     
     def __init__(self, *args,**kwargs):
-
+        self.properties0 = BodyProperties()
+        self.properties1 = BodyProperties()
+        self.properties2 = BodyProperties()
+        
         # Main variables
         self.m0 = kwargs.get("m0") # mass of central object
         self.m1 = kwargs.get("m1") # mass of secondary
@@ -267,24 +346,30 @@ class Triple(object):
 
         self.spin_rate0 = kwargs.get("spin_rate0") # Spin rate/angular frequency of first body
         self.spin_rate1 = kwargs.get("spin_rate1") # Spin rate of second body
-        self.spin0 = kwargs.get("Spin0") # Spin *vector* for the first body
-        self.spin1 = kwargs.get("Spin1") # Spin *vector* for the second body
-
-        self.R0 = kwargs.get("R0") # radius of primary
-        self.R1 = kwargs.get("R1") # radius of secondary
-
-        self.InertiaMoment0 = None # Moment of inertia of the first body
-        self.InertiaMoment1 = None # Moment of inertia of the second body
+        self.spin0 = kwargs.get("spin0") # Spin *vector* for the first body
+        self.spin1 = kwargs.get("spin1") # Spin *vector* for the second body
+        self.Omega0 = kwargs.get("Omega0") # Spin rotation frequency *vector* for the first body
+        self.Omega1 = kwargs.get("Omega1") # Spin rotation frequency *vector* for the second body
         
-        # Secondary variables
-        self.type0 = kwargs.get("type0")
-        self.type1 = kwargs.get("type1")
+        self.pseudosynch0 =  kwargs.get("pseudosynch0")
+        self.pseudosynch1 =  kwargs.get("pseudosynch1")
+        
+        # Bodies' properties
+        self.properties0.radius = kwargs.get("R0") # radius of primary
+        self.properties1.radius = kwargs.get("R1") # radius of secondary
 
+        self.properties0.mass = self.m0
+        self.properties1.mass = self.m1
+        self.properties2.mass = self.m2
+
+        if (kwargs.get("type0") is not None):
+            self.properties0.mass_type = kwargs.get("type0")
+        if (kwargs.get("type1") is not None):
+            self.properties1.mass_type = kwargs.get("type1")
+        if (kwargs.get("type2") is not None):
+            self.properties2.mass_type = kwargs.get("type2")
         
         # Set default values for the orbits
-        if (self.m0 is None): self.m0 = 1.0
-        if (self.m1 is None): self.m1 = 1.0
-        if (self.m2 is None): self.m2 = 1.0
         if (self.a1 is None): self.a1 = 1.0
         if (self.a2 is None): self.a2 = 100.0            
         if (self.e1 is None): self.e1 = 1.0e-6
@@ -297,42 +382,50 @@ class Triple(object):
         if (self.spin_rate0 is None): self.spin_rate0 = 1.0-9
         if (self.spin_rate1 is None): self.spin_rate1 = 1.0-9
 
-        # Set default values for the bodies
-        if (self.R0 is None): self.R0 = constants.Rsun
-        if (self.R1 is None): self.R1 = constants.Rsun
+        if (self.pseudosynch0 is None): self.pseudosynch0 = False
+        if (self.pseudosynch1 is None): self.pseudosynch1 = False
 
-        if (self.type0 is None): self.type0 = 'star'
-        if (self.type1 is None): self.type1 = 'star'
         
         # Compute individual inclinations
-        L1 = self.m0 * self.m1/(self.m0 + self.m1) * np.sqrt((self.m0 + self.m1) * self.a1 * (1 - self.e1 * self.e1))
-        L2 = (self.m0 + self.m1) * self.m2/(self.m0 + self.m1 + self.m2) * np.sqrt((self.m0 + self.m1 + self.m2) * self.a2 * (1 - self.e2 * self.e2))
+        m0, m1, m2 = self.m0, self.m1, self.m2
+        L1 = m0 * m1/(m0 + m1) * np.sqrt((m0 + m1) * self.a1 * (1 - self.e1 * self.e1))
+        L2 = (m0 + m1) * m2/(m0 + m1 + m2) * np.sqrt((m0 + m1 + m2) * self.a2 * (1 - self.e2 * self.e2))
         L  = np.sqrt(L1 * L1 + L2 * L2 + 2 * L1 * L2 * np.cos(self.I))
         self.I2 = np.arccos((L2 + L1 * np.cos(self.I))/L)
         self.I1 = self.I - self.I2
 
         # Moments of inertia
-        if (self.type0 == 'star'): rg0 = get_gyroradius_star(self.m0)
-        elif (self.type0 == 'planet'): rg0 = get_gyroradius_planet(self.m0)
-
-        if (self.type1 == 'star'): rg1 = get_gyroradius_star(self.m1)
-        elif (self.type1 == 'planet'): rg1 = get_gyroradius_planet(self.m1)
-
-        self.InertiaMoment0 = rg0 * self.m0 * self.R0**2
-        self.InertiaMoment1 = rg1 * self.m1 * self.R1**2
+        if (self.properties0.mass_type == 'star'): self.properties0.gyroradius = get_gyroradius_star(self.properties0.mass)
+        elif (self.properties0.mass_type == 'planet'): self.properties0.gyroradius = get_gyroradius_planet(self.properties0.mass)
         
-
+        if (self.properties1.mass_type == 'star'): self.properties1.gyroradius = get_gyroradius_star(self.properties1.mass)
+        elif (self.properties1.mass_type == 'planet'): self.properties1.gyroradius = get_gyroradius_planet(self.properties1.mass)
+        
         # Compute the default spin *orientations*
         if (self.spin0 is None):
-            spin0 = self.spin_rate0 * self.InertiaMoment0
-            self.spin0 = [spin0 * np.sin(self.h1) * np.sin(self.I1),
-                          -spin0 * np.cos(self.h1) * np.sin(self.I1), 
-                          spin0 * np.cos(self.h1)]
+            if callable(self.properties0.radius):
+                radius0 = self.properties0.radius(0)
+            else:
+                radius0 = self.properties0.radius
+            I0 = self.properties0.gyroradius * self.m0 * radius0 * radius0
+            spin0 = self.spin_rate0 * I0
+            deltah_0, deltaI_0 = rd.random()*np.pi*0.001,rd.random()*np.pi*0.001
+            self.spin0 = [spin0 * np.sin(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0),
+                          -spin0 * np.cos(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0), 
+                          spin0 * np.cos(self.I1 + deltaI_0)]
+            self.Omega0 = [self.spin0[0] / I0, self.spin0[1] / I0, self.spin0[2] / I0]
         if (self.spin1 is None):
-            spin1 = self.spin_rate1 * self.InertiaMoment1
-            self.spin1 = [spin1 * np.sin(self.h1) * np.sin(self.I1),
-                          -spin1 * np.cos(self.h1) * np.sin(self.I1), 
-                          spin1 * np.cos(self.h1)] 
+            if callable(self.properties1.radius):
+                radius1 = self.properties1.radius(0)
+            else:
+                radius1 = self.properties1.radius
+            I1 = self.properties1.gyroradius * self.m1 * radius1 * radius1
+            spin1 = self.spin_rate1 * I1
+            deltah_1, deltaI_1 = rd.random()*np.pi*0.001,rd.random()*np.pi*0.001
+            self.spin1 = [spin1 * np.sin(self.h1 + deltah_1) * np.sin(self.I1 + deltaI_1),
+                          -spin1 * np.cos(self.h1 + deltah_1) * np.sin(self.I1 + deltaI_1), 
+                          spin1 * np.cos(self.I1 + deltaI_1)] 
+            self.Omega1 = [self.spin1[0] / I1, self.spin1[1] / I1, self.spin1[2] / I1]
 
 
         
@@ -341,13 +434,13 @@ class Triple(object):
         Coordinate transformation from orbital elements to orbital vectors
         
         """
-        
+        m0, m1, m2 = self.m0, self.m1, self.m2
         # For the inner orbit
         e1x = self.e1 * (np.cos(self.g1) * np.cos(self.h1) - np.sin(self.g1) * np.sin(self.h1) * np.cos(self.I1))
         e1y = self.e1 * (np.cos(self.g1) * np.sin(self.h1) + np.sin(self.g1) * np.cos(self.h1) * np.cos(self.I1))
         e1z = self.e1 * np.sin(self.g1) * np.sin(self.I1)
         
-        l1  = np.sqrt(constants.G * self.a1 * (self.m0 + self.m1) * (1 - self.e1 * self.e1))
+        l1  = np.sqrt(constants.G * self.a1 * (m0 + m1) * (1 - self.e1 * self.e1))
         l1x = l1 * np.sin(self.h1) * np.sin(self.I1)
         l1y = -l1 * np.cos(self.h1) * np.sin(self.I1)
         l1z = l1 * np.cos(self.I1)
@@ -357,36 +450,81 @@ class Triple(object):
         e2y = self.e2 * (np.cos(self.g2) * np.sin(self.h2) + np.sin(self.g2) * np.cos(self.h2) * np.cos(self.I2))
         e2z = self.e2 * np.sin(self.g2) * np.sin(self.I2)
 
-        l2  = np.sqrt(constants.G * self.a2 * (self.m0 + self.m1 + self.m2) * (1 - self.e2 * self.e2))
+        l2  = np.sqrt(constants.G * self.a2 * (m0 + m1 + m2) * (1 - self.e2 * self.e2))
         l2x = l2 * np.sin(self.h2) * np.sin(self.I2)
         l2y = -l2 * np.cos(self.h2) * np.sin(self.I2)
         l2z = l2 * np.cos(self.I2)
 
         # Including the inner pair's spin angular momenta
-        
-        return [e1x,e1y,e1z,l1x,l1y,l1z,e2x,e2y,e2z,l2x,l2y,l2z,self.spin0[0],self.spin0[1],self.spin0[2],self.spin1[0],self.spin1[1],self.spin1[2]]
+           
+        return [e1x,e1y,e1z,
+                l1x,l1y,l1z,
+                e2x,e2y,e2z,
+                l2x,l2y,l2z]
     
+
+    def set_ics(self,spin_vector=False):
+        """
+        Set the initial conditions to be used by the integrations routines.
+
+        """
+        vector = self.vector_form()
+        jj = 0
+        triple_keys['e1x'],triple_keys['e1y'],triple_keys['e1z'] =  jj + 0, jj + 1, jj + 2
+        triple_keys['l1x'],triple_keys['l1y'],triple_keys['l1z'] =  jj + 3, jj + 4, jj + 5
+        jj+=6
+        triple_keys['e2x'],triple_keys['e2y'],triple_keys['e2z'] =  jj + 0, jj + 1, jj + 2
+        triple_keys['l2x'],triple_keys['l2y'],triple_keys['l2z'] =  jj + 3, jj + 4, jj + 5
+        jj+=6
         
+        if not (self.properties0.mass_type == 'pointmass') & (self.properties0.mass_type is not None):
+            if not (self.pseudosynch0): 
+                triple_data['spin0'] = True
+                if (spin_vector):
+                    triple_keys['spin0x'],triple_keys['spin0y'],triple_keys['spin0z'] = jj + 0, jj + 1, jj + 2
+                    jj+=3
+                    vector +=  [self.spin0[0],self.spin0[1],self.spin0[2]]
+                else:
+                    triple_keys['Omega0x'],triple_keys['Omega0y'],triple_keys['Omega0z'] = jj + 0, jj + 1, jj + 2
+                    jj+=3
+                    vector +=  [self.Omega0[0],self.Omega0[1],self.Omega0[2]] 
+            else: 
+                triple_data['pseudosynch0'] = True
+                
+        if not (self.properties1.mass_type == 'pointmass') & (self.properties1.mass_type is not None):
+            if not (self.pseudosynch1): 
+                triple_data['spin1'] = True
+                if (spin_vector):
+                    triple_keys['spin1x'],triple_keys['spin1y'],triple_keys['spin1z'] =  jj + 0, jj + 1, jj + 2
+                    jj+=3
+                    vector +=  [self.spin1[0],self.spin1[1],self.spin1[2]]
+                else:
+                    triple_keys['Omega1x'],triple_keys['Omega1y'],triple_keys['Omega1z'] = jj + 0, jj + 1, jj + 2
+                    jj+=3
+                    vector +=  [self.Omega1[0],self.Omega1[1],self.Omega1[2]]    
+            else: 
+                triple_data['pseudosynch1'] = True
+            
+        return vector
+               
     def integrate(self,timemax,Nevals,octupole_potential= True,
                   short_range_forces_conservative=False,
-                  short_range_forces_dissipative = False):
+                  short_range_forces_dissipative = False,
+                  solve_for_spin_vector = False):
         """
         Integrate the system forward in time
 
         """
 
-        vector_ics = self.vector_form()
+        vector_ics = self.set_ics()
         
-        solution = integrate_triple_system(vector_ics,timemax,Nevals, self.m0,self.m1,self.m2,\
-                                           R0=self.R0,R1=self.R1,
-                                           I0=self.InertiaMoment0, I1=self.InertiaMoment1,
-                                           k2_0 = None, k2_1  = None,
-                                           tv0 = None, tv1  = None,
+
+        solution = integrate_triple_system(vector_ics,timemax,Nevals,
+                                           self.properties0,self.properties1,self.properties2,
                                            octupole_potential=octupole_potential,\
                                            short_range_forces_conservative=short_range_forces_conservative,
                                            short_range_forces_dissipative=short_range_forces_dissipative)
         
-
         triple_solution = TripleSolution(self,vector_solution = solution)
         
         return triple_solution
