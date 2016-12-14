@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.integrate as integ
 import triples
-import bsint
+#import bsint
 
 def integrate_triple_system(ics,timemax,Nevals,
                             body0, body1, body2,
@@ -37,11 +37,11 @@ def integrate_triple_system(ics,timemax,Nevals,
                           args=params,\
                           atol=atol,rtol=rtol,mxstep=1000000,hmin=0.0000001,mxords=16,mxordn=12)
 
-    elif (integrator == 'bsint'):
+    #elif (integrator == 'bsint'):
 
-        sol, t =  bsint.bsintegrate(ode_modified,ics,0,time[-1],mxstep=1000000,args=params,tacc=1.0e-9)
-        print time.max(),t.max()
-        time = t
+    #    sol, t =  bsint.bsintegrate(ode_modified,ics,0,time[-1],mxstep=1000000,args=params,tacc=1.0e-9)
+    #    print time.max(),t.max()
+    #    time = t
 
 
     else:
