@@ -225,7 +225,7 @@ class TripleSolution(object):
         # for the outer orbit
         self.elementdata.e2 = np.sqrt(self.vectordata.e2x[:]**2 + self.vectordata.e2y[:]**2 + self.vectordata.e2z[:]**2)
         self.elementdata.a2 = (self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2)/constants.G /\
-                              (self.triple.m0 + self.triple.m1 + self.triple.m2) / (2 - self.elementdata.e2[:] * self.elementdata.e2[:])
+                              (self.triple.m0 + self.triple.m1 + self.triple.m2) / (1 - self.elementdata.e2[:] * self.elementdata.e2[:])
         self.elementdata.I2 = np.arccos(self.vectordata.l2z[:]/np.sqrt(self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2))
         self.elementdata.h2 = np.arctan2(self.vectordata.l2x[:],-self.vectordata.l2y[:])
         self.elementdata.g2 = np.arctan2((-self.vectordata.e2x[:] * np.sin(self.elementdata.h2[:]) + \
