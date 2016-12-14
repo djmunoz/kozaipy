@@ -402,7 +402,7 @@ class Triple(object):
         elif (self.properties1.mass_type == 'planet'): self.properties1.gyroradius = get_gyroradius_planet(self.properties1.mass)
         
         # Compute the default spin *orientations*
-        if (self.spin0 is None):
+        if (self.spin0 is None) & (self.properties0.mass_type != 'pointmass'):
             if callable(self.properties0.radius):
                 radius0 = self.properties0.radius(0)
             else:
@@ -414,7 +414,7 @@ class Triple(object):
                           -spin0 * np.cos(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0), 
                           spin0 * np.cos(self.I1 + deltaI_0)]
             self.Omega0 = [self.spin0[0] / I0, self.spin0[1] / I0, self.spin0[2] / I0]
-        if (self.spin1 is None):
+        if (self.spin1 is None) & (self.properties1.mass_type != 'pointmass'):
             if callable(self.properties1.radius):
                 radius1 = self.properties1.radius(0)
             else:
