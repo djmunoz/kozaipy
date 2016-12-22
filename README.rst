@@ -5,6 +5,10 @@ KOZAIPY - Secular equations of motion for the evolution of triple systems with t
 
 Welcome to KozaiPy!
 
+Overview
+--------
+
+KozaiPy is a Python package for the integration of the secular equations of motion of few-body hierarchical systems.
 
 Examples
 --------
