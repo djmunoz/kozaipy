@@ -1,9 +1,8 @@
-import numpy as np
+from math import sqrt, pi,log10
+from numpy import inf
 import scipy.integrate as integ
 import triples
 #import bsint
-
-
 
 def threebody_ode_vf_full(t,y,m0,m1,m2,
                           radius0, radius1,
@@ -11,6 +10,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                           k2_0, k2_1,
                           tv0, tv1,
                           tauconv0, tauconv1,
+                          tlag0, tlag1,
                           dradius0_dt,dradius1_dt,
                           dgyroradius0_dt, dgyroradius1_dt,
                           octupole,
@@ -18,6 +18,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                           extra_forces_dissipative,
                           solve_for_spin_vector):
 
+    
     #####################################################################
     #time-dependent variables ###########################################
     
@@ -43,31 +44,49 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         houty = y[jj+4]
         houtz = y[jj+5]
         jj+=6
-    
+
+            
     # for the spin (specific) angular momenta
     if (solve_for_spin_vector):
         if (triples.triple_data['spin0']):
-            Spin0x = y[jj+0]
-            Spin0y = y[jj+1]
-            Spin0z = y[jj+2]
-            jj+=3
-        if (triples.triple_data['spin1']):    
-            Spin1x = y[jj+0]
-            Spin1y = y[jj+1]
-            Spin1z = y[jj+2]
-            jj+=3
+            if not  (triples.triple_data['spinorbit_align0']):
+                Spin0x = y[jj+0]
+                Spin0y = y[jj+1]
+                Spin0z = y[jj+2]
+                jj+=3
+            else:
+                Spin0 = y[jj+0]
+                jj+=1
+        if (triples.triple_data['spin1']):
+            if not  (triples.triple_data['spinorbit_align1']):
+                Spin1x = y[jj+0]
+                Spin1y = y[jj+1]
+                Spin1z = y[jj+2]
+                jj+=3
+            else:
+                Spin1 = y[jj+0]
+                jj+=1              
     else:
         if (triples.triple_data['spin0']):
-            Omega0x = y[jj+0]
-            Omega0y = y[jj+1]
-            Omega0z = y[jj+2]
-            jj+=3
-        if (triples.triple_data['spin1']):    
-            Omega1x = y[jj+0]
-            Omega1y = y[jj+1]
-            Omega1z = y[jj+2]
-            jj+=3      
+            if not  (triples.triple_data['spinorbit_align0']):
+                Omega0x = y[jj+0]
+                Omega0y = y[jj+1]
+                Omega0z = y[jj+2]
+                jj+=3
+            else:
+                Omega0 = y[jj+0]
+                jj+=1
+        if (triples.triple_data['spin1']):
+            if not  (triples.triple_data['spinorbit_align1']):
+                Omega1x = y[jj+0]
+                Omega1y = y[jj+1]
+                Omega1z = y[jj+2]
+                jj+=3      
+            else:
+                Omega1 = y[jj+0]
+                jj+=1 
 
+    # radii
     if (radius0 is not None):
         if callable(radius0):
             R0 = radius0(t)
@@ -94,9 +113,12 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         else:
             dR1_dt = dradius1_dt
 
+    # gyroradii
     if (gyroradius0 is not None):
         if callable(gyroradius0):
             rg_0 = gyroradius0(t)
+            # hot fix
+            k2_0 = 10**((log10(rg_0)+0.13)/0.24)
         else:
             rg_0 = gyroradius0
 
@@ -120,34 +142,47 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         else:
             drg1_dt = dgyroradius1_dt
 
-                
+    # time lags
+    if (tlag0 is not None):
+        if callable(tlag0):
+            taulag0 = tlag0(t)
+        else:
+            taulag0 = tlag0
+
+    if (tlag1 is not None):
+        if callable(tlag1):
+            taulag1 = tlag1(t)
+        else:
+            taulag1 = tlag1
+
     ####################################################
     # Some quantities defined for convenience
     mu = m0 * m1 / (m0 + m1)
     
-    ein_squared = einx**2 + einy**2 + einz**2
-    ein = np.sqrt(ein_squared)
+    ein_squared = einx * einx + einy * einy + einz * einz
+    ein = sqrt(ein_squared)
     one_minus_einsq = 1 - ein_squared
-    one_minus_einsq_sqrt = np.sqrt(one_minus_einsq)
+    one_minus_einsq_sqrt = sqrt(one_minus_einsq)
     one_minus_einsq_squared = one_minus_einsq * one_minus_einsq
     one_minus_einsq_fifth =  one_minus_einsq_squared * one_minus_einsq_squared * one_minus_einsq
-    hin = np.sqrt(hinx**2 + hiny**2 + hinz**2)
-
-    eout_squared = eoutx**2 + eouty**2 + eoutz**2
-    hout = np.sqrt(houtx**2 + houty**2 + houtz**2)
-    eout = np.sqrt(eout_squared)
+    hin_squared = hinx * hinx + hiny * hiny + hinz * hinz
+    hin = sqrt(hin_squared)
+    
+    eout_squared = eoutx * eoutx + eouty * eouty + eoutz * eoutz
+    hout = sqrt(houtx * houtx + houty * houty + houtz * houtz)
+    eout = sqrt(eout_squared)
     one_minus_eoutsq = 1 - eout_squared
-    one_minus_eoutsq_sqrt = np.sqrt(one_minus_eoutsq)
+    one_minus_eoutsq_sqrt = sqrt(one_minus_eoutsq)
     one_minus_eoutsq_squared = one_minus_eoutsq * one_minus_eoutsq
 
     Gm_in =  triples.constants.G * (m0 + m1)
     Gm_out =  triples.constants.G * (m0 + m1 + m2)
-    ain = hin * hin / (1 - ein * ein) / Gm_in
+    ain = hin_squared / (1 - ein * ein) / Gm_in
     aout = hout * hout / (1 - eout * eout) / Gm_out
-    norbit_in = np.sqrt(Gm_in/ain/ain/ain)
-    norbit_out = np.sqrt(Gm_out/aout/aout/aout)
-    L_in = np.sqrt(Gm_in * ain)
-    L_out = np.sqrt(Gm_out * aout)
+    norbit_in = sqrt(Gm_in/ain/ain/ain)
+    norbit_out = sqrt(Gm_out/aout/aout/aout)
+    L_in = sqrt(Gm_in * ain)
+    L_out = sqrt(Gm_out * aout)
     
     # unit vectors
     uinx, uiny, uinz = einx/ein, einy/ein, einz/ein
@@ -187,16 +222,6 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
     f4 = 1 + 1.5 * ein_squared + 0.125 * ein_fourth
     f5 = 1 + 3.0 * ein_squared + 0.375 * ein_fourth
 
-    if (ein < 1e-12):
-        ein = 0
-        ein_squared = 0
-        one_minus_einsq = 1
-        one_minus_einsq_sqrt = 1
-        one_minus_einsq_squared = 1
-        one_minus_einsq_fifth =  1
-        ein_fourth = 0
-        ein_sixth = 0
-        f2,f3,f4,f5 = 1, 1, 1, 1
         
     if (triples.triple_data['spin0']):
         I0 = rg_0 * m0 * R0 * R0
@@ -206,15 +231,23 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                 dI0_dt+= drg0_dt * m0 * R0 * R0
         else:
             dI0_dt = 0
-        if (solve_for_spin_vector):
-            Omega0_u = (Spin0x * uinx + Spin0y * uiny + Spin0z * uinz) / I0
-            Omega0_n = (Spin0x * ninx + Spin0y * niny + Spin0z * ninz) / I0 
-            Omega0_v = (Spin0x * vinx + Spin0y * viny + Spin0z * vinz) / I0
+        if not  (triples.triple_data['spinorbit_align0']):
+            if (solve_for_spin_vector):
+                Omega0_u = (Spin0x * uinx + Spin0y * uiny + Spin0z * uinz) / I0
+                Omega0_n = (Spin0x * ninx + Spin0y * niny + Spin0z * ninz) / I0 
+                Omega0_v = (Spin0x * vinx + Spin0y * viny + Spin0z * vinz) / I0
+            else:
+                Omega0_u = (Omega0x * uinx + Omega0y * uiny + Omega0z * uinz)
+                Omega0_n = (Omega0x * ninx + Omega0y * niny + Omega0z * ninz)
+                Omega0_v = (Omega0x * vinx + Omega0y * viny + Omega0z * vinz)            
+            Omega0 = sqrt(Omega0_u**2 + Omega0_v**2 + Omega0_n**2)
         else:
-            Omega0_u = (Omega0x * uinx + Omega0y * uiny + Omega0z * uinz)
-            Omega0_n = (Omega0x * ninx + Omega0y * niny + Omega0z * ninz)
-            Omega0_v = (Omega0x * vinx + Omega0y * viny + Omega0z * vinz)            
-        Omega0 = np.sqrt(Omega0_u**2 + Omega0_v**2 + Omega0_n**2)
+            Omega0_u = 0
+            Omega0_v = 0
+            if (solve_for_spin_vector):
+                Omega0_n = Spin0 / I0 
+            else:
+                Omega0_n = Omega0 
     elif (triples.triple_data['pseudosynch0']):
         Omega0_u = 0
         Omega0_n = f2/f5/one_minus_einsq/one_minus_einsq_sqrt * norbit_in
@@ -222,6 +255,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         Omega0 = Omega0_n
     else:
         Omega0_u, Omega0_v, Omega0_n, Omega0 = 0, 0, 0, 0
+
         
     if (triples.triple_data['spin1']):
         I1 = rg_1 * m1 * R1 * R1
@@ -231,15 +265,23 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                  dI1_dt+= drg1_dt * m1 * R1 * R1
         else:
             dI1_dt = 0
-        if (solve_for_spin_vector):
-            Omega1_u = (Spin1x * uinx + Spin1y * uiny + Spin1z * uinz) / I1 
-            Omega1_n = (Spin1x * ninx + Spin1y * niny + Spin1z * ninz) / I1  
-            Omega1_v = (Spin1x * vinx + Spin1y * viny + Spin1z * vinz) / I1
+        if not  (triples.triple_data['spinorbit_align1']):
+            if (solve_for_spin_vector):
+                Omega1_u = (Spin1x * uinx + Spin1y * uiny + Spin1z * uinz) / I1 
+                Omega1_n = (Spin1x * ninx + Spin1y * niny + Spin1z * ninz) / I1  
+                Omega1_v = (Spin1x * vinx + Spin1y * viny + Spin1z * vinz) / I1
+            else:
+                Omega1_u = (Omega1x * uinx + Omega1y * uiny + Omega1z * uinz)
+                Omega1_n = (Omega1x * ninx + Omega1y * niny + Omega1z * ninz)
+                Omega1_v = (Omega1x * vinx + Omega1y * viny + Omega1z * vinz)
+            Omega1 = sqrt(Omega1_u**2 + Omega1_v**2 + Omega1_n**2)
         else:
-            Omega1_u = (Omega1x * uinx + Omega1y * uiny + Omega1z * uinz)
-            Omega1_n = (Omega1x * ninx + Omega1y * niny + Omega1z * ninz)
-            Omega1_v = (Omega1x * vinx + Omega1y * viny + Omega1z * vinz)
-        Omega1 = np.sqrt(Omega1_u**2 + Omega1_v**2 + Omega1_n**2)
+            Omega1_u = 0
+            Omega1_v = 0
+            if (solve_for_spin_vector):
+                Omega1_n = Spin1 / I1 
+            else:
+                Omega1_n = Omega1
     elif (triples.triple_data['pseudosynch1']):
         Omega1_u = 0
         Omega1_n = f2/f5/one_minus_einsq/one_minus_einsq_sqrt * norbit_in
@@ -247,6 +289,9 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         Omega = Omega1_n
     else:
         Omega1_u, Omega1_v, Omega1_n, Omega1 = 0, 0, 0, 0
+
+
+
         
     if (extra_forces_conservative):
         
@@ -289,37 +334,34 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
             #tf0 = tv0/9 / size_ratio0_eighth * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k2_0)**2 
             #tf1 = tv1/9 / size_ratio1_eighth * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k2_1)**2 
 
-            #print tv0,tv1,tauconv0,tauconv1
             
             if (tv0 is not None):
                 timelag0 = 1.5 / tv0 * R0 * R0 * R0 / triples.constants.G / m0 * (1 + 2 * k2_0)**2/ k2_0
             elif (tauconv0 is not None):
-                #ptide0 = 2*np.pi/np.abs(norbit_in - Omega0)
+                #ptide0 = 2*pi/np.abs(norbit_in - Omega0)
                 #fconv0 = min(1.0, (ptide0/tauconv0/2) * (ptide0/tauconv0/2))
                 fconv0 = 1
-                print t/365.25, R0,R1,ein,ain
                 timelag0 = 2.0/21 * fconv0/tauconv0 * R0 * R0 * R0 / triples.constants.G / m0 / k2_0
+            elif (tlag0 is not None):
+                timelag0 = taulag0
             else:
                 timelag0 = 0    
 
-            if (tv1 is not None): 
+            if (tv1 is not None):
                 timelag1 = 1.5 / tv1 * R1 * R1 * R1 / triples.constants.G / m1 * (1 + 2 * k2_1)**2/ k2_1
             elif (tauconv1 is not None):
-                #ptide1 = 2*np.pi/np.abs(norbit_in - Omega1)
+                #ptide1 = 2*pi/np.abs(norbit_in - Omega1)
                 #fconv1 = min(1.0, (ptide1/tauconv1/2) * (ptide1/tauconv1/2))
                 fconv1 = 1
                 timelag1 = 2.0/21 * fconv1/tauconv1 * R1 * R1 * R1 / triples.constants.G / m1 / k2_1
+            elif (tlag1 is not None):
+                timelag1 = taulag1
             else:
                 timelag1 = 0   
 
-
-            timelag0 = 50.0 / 86400
-            timelag1 = 0.01 / 86400
-                
             tf0 = m0 /m1 / size_ratio0_fifth / norbit_in /norbit_in / timelag0 /6 / k2_0
             tf1 = m1 /m0 / size_ratio1_fifth / norbit_in /norbit_in / timelag1 /6 / k2_1
 
-            
             
             V0 += 9.0 / tf0 * (f3 / one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
                                11.0/18 * Omega0_n / norbit_in * f4 / one_minus_einsq_fifth)
@@ -429,6 +471,8 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
             dOmega0y_dt = 0
             
             dOmega0z_dt = 0
+
+            dOmega0_dt = 0
             
         if (triples.triple_data['spin1']):
             dOmega1x_dt = 0
@@ -437,7 +481,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
             
             dOmega1z_dt = 0
 
-            
+            dOmega1_dt = 0
             
     if (octupole):
         epsilon_oct = (m0 - m1)/(m0 + m1) * (ain/aout) 
@@ -568,7 +612,6 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
           
 
 
-    #print t/365.25
         
     if (extra_forces_conservative) | (extra_forces_dissipative):
 
@@ -586,59 +629,65 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         
 
         if (triples.triple_data['spin0']):
-            dSpin0x_dt_tide = mu * hin * (-Y0 * uinx + X0 * vinx + W0 * ninx)
             
-            dSpin0y_dt_tide = mu * hin * (-Y0 * uiny + X0 * viny + W0 * niny)
-            
-            dSpin0z_dt_tide = mu * hin * (-Y0 * uinz + X0 * vinz + W0 * ninz)
+            if not (triples.triple_data['spinorbit_align0']):
+                dSpin0x_dt_tide = mu * hin * (-Y0 * uinx + X0 * vinx + W0 * ninx)
+                
+                dSpin0y_dt_tide = mu * hin * (-Y0 * uiny + X0 * viny + W0 * niny)
+                
+                dSpin0z_dt_tide = mu * hin * (-Y0 * uinz + X0 * vinz + W0 * ninz)
 
 
-            if (solve_for_spin_vector):
-                dSpin0x_dt += dSpin0x_dt_tide
-                
-                dSpin0y_dt += dSpin0y_dt_tide
-                
-                dSpin0z_dt += dSpin0z_dt_tide
-            else:
-                tau_omega = 0.5e6*365.25
-                Omegaref = 2 * np.pi/8.0
-
-                dOmega0x_dt += dSpin0x_dt_tide / I0 - dI0_dt * Omega0x / I0
-                
-                dOmega0y_dt += dSpin0y_dt_tide / I0 - dI0_dt * Omega0y / I0
-                
-                dOmega0z_dt += dSpin0z_dt_tide / I0 - dI0_dt * Omega0z / I0
-
-                if (tau_omega != np.inf):
-                    dOmega0x_dt += -(Omega0 - Omegaref)/tau_omega * Omega0x/Omega0
-                
-                    dOmega0y_dt += -(Omega0 - Omegaref)/tau_omega * Omega0y/Omega0
+                if (solve_for_spin_vector):
+                    dSpin0x_dt += dSpin0x_dt_tide
                     
-                    dOmega0z_dt += -(Omega0 - Omegaref)/tau_omega * Omega0z/Omega0
-  
+                    dSpin0y_dt += dSpin0y_dt_tide
+                    
+                    dSpin0z_dt += dSpin0z_dt_tide
+                else:
+                    tau_omega = inf#0.5e6*365.25
+                    Omegaref = 2 * pi/8.0
 
+                    dOmega0x_dt += dSpin0x_dt_tide / I0 - dI0_dt * Omega0x / I0
+                    
+                    dOmega0y_dt += dSpin0y_dt_tide / I0 - dI0_dt * Omega0y / I0
+                    
+                    dOmega0z_dt += dSpin0z_dt_tide / I0 - dI0_dt * Omega0z / I0
+                    
+                    if (tau_omega != inf):
+                        dOmega0x_dt += -(Omega0 - Omegaref)/tau_omega * Omega0x/Omega0
+                        
+                        dOmega0y_dt += -(Omega0 - Omegaref)/tau_omega * Omega0y/Omega0
+                        
+                        dOmega0z_dt += -(Omega0 - Omegaref)/tau_omega * Omega0z/Omega0
+            else:
+                dOmega0_dt =  mu * hin / I0 * W0
                 
         if (triples.triple_data['spin1']):
-            dSpin1x_dt_tide = mu * hin * (-Y1 * uinx + X1 * vinx + W1 * ninx)
+            if not (triples.triple_data['spinorbit_align1']):
+                dSpin1x_dt_tide = mu * hin * (-Y1 * uinx + X1 * vinx + W1 * ninx)
                 
-            dSpin1y_dt_tide = mu * hin * (-Y1 * uiny + X1 * viny + W1 * niny)
-            
-            dSpin1z_dt_tide = mu * hin * (-Y1 * uinz + X1 * vinz + W1 * ninz)
-            
-            if (solve_for_spin_vector):
-                dSpin1x_dt += dSpin1x_dt_tide
+                dSpin1y_dt_tide = mu * hin * (-Y1 * uiny + X1 * viny + W1 * niny)
                 
-                dSpin1y_dt += dSpin1y_dt_tide
-                
-                dSpin1z_dt += dSpin1z_dt_tide
-            else:
-                dOmega1x_dt += dSpin1x_dt_tide/I1 - dI1_dt * Omega1x / I1
-                
-                dOmega1y_dt += dSpin1y_dt_tide/I1 - dI1_dt * Omega1y / I1
-                
-                dOmega1z_dt += dSpin1z_dt_tide/I1 - dI1_dt * Omega1z / I1  
+                dSpin1z_dt_tide = mu * hin * (-Y1 * uinz + X1 * vinz + W1 * ninz)
 
-                
+                if (solve_for_spin_vector):
+                    dSpin1x_dt += dSpin1x_dt_tide
+                    
+                    dSpin1y_dt += dSpin1y_dt_tide
+                    
+                    dSpin1z_dt += dSpin1z_dt_tide
+                else:
+                    dOmega1x_dt += dSpin1x_dt_tide/I1 - dI1_dt * Omega1x / I1
+                    
+                    dOmega1y_dt += dSpin1y_dt_tide/I1 - dI1_dt * Omega1y / I1
+                    
+                    dOmega1z_dt += dSpin1z_dt_tide/I1 - dI1_dt * Omega1z / I1  
+
+            else:
+               dOmega1_dt =  mu * hin / I1 * W1
+
+        
     ########################################################################
     # vector differential equations
     
@@ -665,26 +714,42 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                         dhoutz_dt]
     
     # for the spin (specific) angular momenta
-    if ((triples.triple_data['spin0']) & (not triples.triple_data['pseudosynch0'])):
-        if (solve_for_spin_vector):
-            diffeq_list += [dSpin0x_dt,
-                            dSpin0y_dt,
-                            dSpin0z_dt]
-        else:
-            diffeq_list += [dOmega0x_dt,
-                            dOmega0y_dt,
-                            dOmega0z_dt] 
-            
+    if (triples.triple_data['spin0']):
+        if  (not triples.triple_data['pseudosynch0']):
+            if (solve_for_spin_vector):
+                if not (triples.triple_data['spinorbit_align0']):
+                    diffeq_list += [dSpin0x_dt,
+                                    dSpin0y_dt,
+                                    dSpin0z_dt]
+                else:
+                    diffeq_list += [dSpin0_dt]
+            else:
+                if not (triples.triple_data['spinorbit_align0']):
+                    diffeq_list += [dOmega0x_dt,
+                                    dOmega0y_dt,
+                                    dOmega0z_dt]
+                else:
+                    diffeq_list += [dOmega0_dt]
+                    
         
-    if ((triples.triple_data['spin1']) & (not triples.triple_data['pseudosynch1'])):
-        if (solve_for_spin_vector):
-            diffeq_list += [dSpin1x_dt,
-                            dSpin1y_dt,
-                            dSpin1z_dt]
-        else:
-            diffeq_list += [dOmega1x_dt,
-                            dOmega1y_dt,
-                            dOmega1z_dt]            
+    if (triples.triple_data['spin1']):
+        if (not triples.triple_data['pseudosynch1']):
+            if (solve_for_spin_vector):
+                if not (triples.triple_data['spinorbit_align1']):
+                    diffeq_list += [dSpin1x_dt,
+                                    dSpin1y_dt,
+                                    dSpin1z_dt]
+                else:
+                    diffeq_list += [dSpin1_dt]
+            else:
+                if not (triples.triple_data['spinorbit_align1']):
+                    diffeq_list += [dOmega1x_dt,
+                                    dOmega1y_dt,
+                                    dOmega1z_dt]
+                else:
+                    diffeq_list += [dOmega1_dt]
+
+
 
     #if the properties of the bodies are changing
     #if (dradius0_dt is not None) & (np.isfinite(dradius0_dt)):
@@ -692,7 +757,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
     #if (dradius1_dt is not None) & (np.isfinite(dradius1_dt)):
     #    diffeq_list += [dR1_dt]       
     
-            
+
     return diffeq_list
 
 
@@ -703,6 +768,7 @@ def threebody_ode_vf_full_modified(t,y,m0,m1,m2,
                                    k2_0, k2_1,
                                    tv0, tv1,
                                    tauconv0, tauconv1,
+                                   tlag0, tlag1,
                                    dradius0_dt,dradius1_dt,
                                    dgyroradius0_dt, dgyroradius1_dt,
                                    octupole,
@@ -716,6 +782,7 @@ def threebody_ode_vf_full_modified(t,y,m0,m1,m2,
                                  k2_0, k2_1,
                                  tv0, tv1,
                                  tauconv0, tauconv1,
+                                 tlag0, tlag1,
                                  dradius0_dt,dradius1_dt,
                                  dgyroradius0_dt, dgyroradius1_dt,
                                  octupole,

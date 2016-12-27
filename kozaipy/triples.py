@@ -45,6 +45,29 @@ triple_keys = {"e1x": None,
                "R0": None,
                "R1": None}
 
+
+element_keys = {"a1": 0,
+                "e1": 1,
+                "I1": 2,
+                "g1": 3,
+                "h1": 4,
+                "a2": 5,
+                "e2": 6,
+                "I2": 7,
+                "g2": 8,
+                "h2": 9,
+                "Omega0": 10,
+                "Omega0x": 11,
+                "Omega0y": 12,
+                "Omega0z": 13,
+                "Omega0x": 14,
+                "Omega1": 15,
+                "Omega1x": 16,
+                "Omega1y": 17,
+                "Omega1z": 18
+}
+
+
 triple_data = {"m0": False,
                "m1": False,
                "m2": False,
@@ -87,6 +110,7 @@ class Body(object):
         self.apsidal_constant = kwargs.get("apsidal_constant")
         self.viscous_time = kwargs.get("viscous_time")
         self.convective_time = kwargs.get("convective_time")
+        self.tidal_lag_time = kwargs.get("tidal_lag_time")
 
         self.dradius_dt = kwargs.get("dradius_dt")
         self.dgyroradius_dt = kwargs.get("dgyroradius_dt")
@@ -209,10 +233,11 @@ class TripleSolution(object):
             # data supplied at once as a matrix
             self.vectordata.time = vector_solution[:,0] 
 
+            print 'Numerical solution carried out for:'
             for key,val in self.vectordata.__dict__.items():
                 if (key == 'time'): continue
                 if triple_keys[key] is not None:
-                    print key
+                    print key,
                     setattr(self.vectordata, key,  vector_solution[:,1+triple_keys[key]])
 
 
@@ -256,7 +281,6 @@ class TripleSolution(object):
 
         if (self.vectordata.spin0x is not None):
             self.elementdata.spin0x = self.vectordata.spin0x
-            #self.elementdata.Omega0x = self.elementdata.spin0x / self.triple.properties0.inertia_moment
         if (self.vectordata.spin0y is not None):
             self.elementdata.spin0y = self.vectordata.spin0y
         if (self.vectordata.spin0z is not None):
@@ -268,6 +292,23 @@ class TripleSolution(object):
         if (self.vectordata.spin1z is not None):
             self.elementdata.spin1z = self.vectordata.spin1z
 
+        if (self.vectordata.Omega0 is not None):
+            self.elementdata.Omega0 = self.vectordata.Omega0
+        if (self.vectordata.Omega0x is not None):
+            self.elementdata.Omega0x = self.vectordata.Omega0x
+        if (self.vectordata.Omega0y is not None):
+            self.elementdata.Omega0y = self.vectordata.Omega0y
+        if (self.vectordata.Omega0z is not None):
+            self.elementdata.Omega0z = self.vectordata.Omega0z
+        if (self.vectordata.Omega1 is not None):
+            self.elementdata.Omega1 = self.vectordata.Omega1
+        if (self.vectordata.Omega1x is not None):
+            self.elementdata.Omega1x = self.vectordata.Omega1x
+        if (self.vectordata.Omega1y is not None):
+            self.elementdata.Omega1y = self.vectordata.Omega1y
+        if (self.vectordata.Omega1z is not None):
+            self.elementdata.Omega1z = self.vectordata.Omega1z
+            
     def add_body_properties(self, body_index, quantity):
 
         bodies = [self.triple.properties0, self.triple.properties1]
@@ -338,28 +379,65 @@ class TripleSolution(object):
 
         f = open(filename,'w')
         fmt_list = []
+        head_list = []
+        index_list = []
         f.write("# time\t\t")
 
         data = self.vectordata.time.reshape(len(self.vectordata.time),1)
         fmt_list.append('%13.8e  ')
-
+        
         for k,v in self.elementdata.__dict__.items():
             if (v is not None):
                 if (k == 'time'):
                     continue
-                if (k == 'a1'): fmt_list.append('%12.8f  ')
-                if (k == 'a2'): fmt_list.append('%12.8f  ')
-                if (k == 'e1'): fmt_list.append('%10.8f  ')
-                if (k == 'e2'): fmt_list.append('%10.8f  ')
-                if (k == 'I1'): fmt_list.append('%10.6f  ')
-                if (k == 'I2'): fmt_list.append('%10.6f  ')
-                if (k == 'g1'): fmt_list.append('%10.6f  ')
-                if (k == 'g2'): fmt_list.append('%10.6f  ')
-                if (k == 'h1'): fmt_list.append('%10.6f  ')
-                if (k == 'h2'): fmt_list.append('%10.6f  ')
-                if ('spin' in k): fmt_list.append('%12.6f  ')
-                f.write(k+"\t\t")
+                if (k == 'a1'):
+                    fmt_list.append('%12.8f  ')
+                    index_list.append(element_keys['a1'])
+                if (k == 'a2'):
+                    fmt_list.append('%12.8f  ')
+                    index_list.append(element_keys['a2'])
+                if (k == 'e1'):
+                    fmt_list.append('%10.8f  ')
+                    index_list.append(element_keys['e1'])
+                if (k == 'e2'):
+                    fmt_list.append('%10.8f  ')
+                    index_list.append(element_keys['e2'])
+                if (k == 'I1'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['I1'])
+                if (k == 'I2'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['I2'])
+                if (k == 'g1'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['g1'])
+                if (k == 'g2'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['g2'])
+                if (k == 'h1'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['h1'])
+                if (k == 'h2'):
+                    fmt_list.append('%10.6f  ')
+                    index_list.append(element_keys['h2'])
+                if ('spin' in k):
+                    fmt_list.append('%12.6f  ')
+                    index_list.append(element_keys[k])
+                if ('Omega' in k):
+                    print "hehe"
+                    fmt_list.append('%12.6f  ')
+                    index_list.append(element_keys[k])
+                    
+                head_list.append(k+"\t\t")
                 data = np.column_stack((data,v))
+        f.write("".join([x for (y,x) in sorted(zip(index_list,head_list))]))
+        print data.shape,len(index_list)
+        print head_list
+        print data[:,1:].shape
+        data[:,1:] = data[:,1:][:,np.asarray(index_list).argsort()]
+        print index_list
+        print np.asarray(index_list)[np.asarray(index_list).argsort()]
+        print data.shape
         f.write("\n")
         f.write("#--------------------------------------------------------------------------\n")
         np.savetxt(f,data[::int(len(self.vectordata.time)/Nlines),:],fmt="".join(fmt_list))
@@ -418,7 +496,8 @@ class Triple(object):
         self.properties1.viscous_time = kwargs.get("tv1")
         self.properties0.convective_time = kwargs.get("tauconv0") 
         self.properties1.convective_time = kwargs.get("tauconv1") 
-
+        self.properties0.tidal_lag_time = kwargs.get("tlag0") 
+        self.properties1.tidal_lag_time = kwargs.get("tlag1") 
 
         
         self.properties0.mass = self.m0
@@ -594,7 +673,6 @@ class Triple(object):
                         jj+=3
                         vector +=  [self.Omega1[0],self.Omega1[1],self.Omega1[2]]
                 else:
-                    print "heyoh,jaja"
                     triple_data['spinorbit_align1'] = True
                     triple_keys['Omega1'] = jj
                     jj+=1
@@ -630,7 +708,6 @@ class Triple(object):
         #self.check_validity_bodies()
         
         vector_ics = self.set_ics()
-        print len(vector_ics)
 
         
         solution = integrate_triple_system(vector_ics,timemin,timemax,Nevals,

@@ -229,6 +229,7 @@ def threebody_ode_vf_tides(t,y,\
             timelag1 = 1.5 / tv1 * R1 * R1 * R1 / triples.constants.G / m1 * (1 + 2 * k2_1)**2/ k2_1
 
             #print timelag0/365.25,timelag1/365.25
+            #print timelag0*86400,timelag1*86400
             
             #tf0 = m0 /m1 / size_ratio0_fifth / norbit_in /norbit_in / timelag0 /6 / k2_0
             #tf1 = m1 /m0 / size_ratio1_fifth / norbit_in /norbit_in / timelag1 /6 / k2_1

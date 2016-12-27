@@ -6,28 +6,28 @@ from triples_integrate_tides import *
 #import bsint
 
 
-triple_precision = {"e1x": 1.0e-9,
-                    "e1y": 1.0e-9,
-                    "e1z": 1.0e-9,
-                    "l1x": 1.0e-11,
-                    "l1y": 1.0e-11,
-                    "l1z": 1.0e-11,
-                    "e2x": 1.0e-8,
-                    "e2y": 1.0e-8,
-                    "e2z": 1.0e-8,
-                    "l2x": 1.0e-11,
-                    "l2y": 1.0e-11,
-                    "l2z": 1.0e-11,
-                    "spin0x": 1.0e-11,
-                    "spin0y": 1.0e-11,
-                    "spin0z": 1.0e-11,
+triple_precision = {"e1x": 1.0e-8,
+                    "e1y": 1.0e-8,
+                    "e1z": 1.0e-8,
+                    "l1x": 1.0e-10,
+                    "l1y": 1.0e-10,
+                    "l1z": 1.0e-10,
+                    "e2x": 1.0e-6,
+                    "e2y": 1.0e-6,
+                    "e2z": 1.0e-6,
+                    "l2x": 1.0e-8,
+                    "l2y": 1.0e-8,
+                    "l2z": 1.0e-8,
+                    "spin0x": 1.0e-8,
+                    "spin0y": 1.0e-8,
+                    "spin0z": 1.0e-8,
                     "spin1x": 1.0e-7,
                     "spin1y": 1.0e-7,
                     "spin1z": 1.0e-7,
-                    "Omega0": 1.0e-8,
-                    "Omega0x": 1.0e-8,
-                    "Omega0y": 1.0e-8,
-                    "Omega0z": 1.0e-8,
+                    "Omega0": 1.0e-7,
+                    "Omega0x": 1.0e-7,
+                    "Omega0y": 1.0e-7,
+                    "Omega0z": 1.0e-7,
                     "Omega1": 1.0e-5,
                     "Omega1x": 1.0e-5,
                     "Omega1y": 1.0e-5,
@@ -62,6 +62,7 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
     k2_0, k2_1 = body0.apsidal_constant, body1.apsidal_constant
     tv0, tv1 = body0.viscous_time, body1.viscous_time
     tauconv0, tauconv1 = body0.convective_time, body1.convective_time
+    tlag0, tlag1 = body0.tidal_lag_time, body1.tidal_lag_time
 
     rtol,atol = np.zeros(len(ics)),np.zeros(len(ics))
     for key,val in triples.triple_keys.items():
@@ -69,13 +70,15 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
             rtol[val] = 10*triple_precision[key]
             atol[val] = triple_precision[key]
 
-    rtol,atol = 1.e-9,1.e-9
+    #rtol,atol = 1.e-9,1.e-08
             
     #integrator='other'
     #integrator = 'bsint'
     
     time = np.linspace(timemin,timemax,Nevals)
-    params = m0,m1,m2,radius0,radius1,gyroradius0,gyroradius1,k2_0,k2_1,tv0,tv1,tauconv0,tauconv1,\
+    params = m0,m1,m2,radius0,radius1,gyroradius0,gyroradius1,k2_0,k2_1,\
+             tv0,tv1,tauconv0,tauconv1,\
+             tlag0,tlag1,\
              dradius0_dt, dradius1_dt,\
              dgyroradius0_dt, dgyroradius1_dt,\
              octupole_potential,\
@@ -93,7 +96,7 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
         elif (version == 'full'):    
             sol =integ.odeint(threebody_ode_vf_full_modified,ics,time,\
                               args=params,\
-                              atol=atol,rtol=rtol,mxstep=1000000,hmin=0.0000001,mxords=16,mxordn=12)
+                              atol=atol,rtol=rtol,mxstep=1000000,hmin=0.000000001,mxords=12,mxordn=10)
     else:
         if (version == 'tides'):
             params = [p for p in params if p is not None]
