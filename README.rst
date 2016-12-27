@@ -19,6 +19,8 @@ You need to have git installed. In addition, you need the NumPy and SciPy Python
    
    git clone https://github.com/djmunoz/kozaipy.git
 
+   cd kozaipy
+   
    sudo python setup.py install
 
 That is all!
