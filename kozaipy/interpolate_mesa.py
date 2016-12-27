@@ -3,14 +3,18 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from string import split
 from triples import *
+import os
 
-radius_file = './data/R.txt'
-gyroradius_file = './data/Rg.txt'
-time_file = './data/t.txt'
+data_dir = os.path.join(os.path.dirname(mypackage.__file__), 'data')
+da_file = os.path.join(data_dir, 'template.txt')
 
-planet_file = '../hd209458b/cold-diss-1e-5/evol.des'
+radius_file = os.path.join(data_dir,'R.txt')
+gyroradius_file = os.path.join(data_dir, 'Rg.txt')
+time_file = os.path.join(data_dir, 't.txt')
 
-lagtime_file = '.data;/time_lag.txt'
+#planet_file = '../hd209458b/cold-diss-1e-5/evol.des'
+
+lagtime_file = os.path.join(data_dir, 'time_lag.txt')
 
 time_throwout = 1e3*365.25
 
