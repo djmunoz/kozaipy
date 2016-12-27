@@ -5,8 +5,7 @@ from string import split
 from triples import *
 import os
 
-data_dir = os.path.join(os.path.dirname(mypackage.__file__), 'data')
-da_file = os.path.join(data_dir, 'template.txt')
+data_dir = os.path.join(os.path.dirname(__file__), 'data')
 
 radius_file = os.path.join(data_dir,'R.txt')
 gyroradius_file = os.path.join(data_dir, 'Rg.txt')

@@ -424,7 +424,6 @@ class TripleSolution(object):
                     fmt_list.append('%12.6f  ')
                     index_list.append(element_keys[k])
                 if ('Omega' in k):
-                    print "hehe"
                     fmt_list.append('%12.6f  ')
                     index_list.append(element_keys[k])
                     
