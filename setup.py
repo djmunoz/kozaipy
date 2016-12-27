@@ -14,5 +14,6 @@ setup(
     packages=['kozaipy'],
     description='Calculation of secular dynamics of stars and planets',
     install_requires = ['numpy','scipy']
-    
+    package_data={'kozaipy':['data/*.txt']}
+    include_package_data=True
 )
