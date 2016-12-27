@@ -430,14 +430,10 @@ class TripleSolution(object):
                     
                 head_list.append(k+"\t\t")
                 data = np.column_stack((data,v))
+
+        # Sort the columns to obtain a consistently organized output
         f.write("".join([x for (y,x) in sorted(zip(index_list,head_list))]))
-        print data.shape,len(index_list)
-        print head_list
-        print data[:,1:].shape
         data[:,1:] = data[:,1:][:,np.asarray(index_list).argsort()]
-        print index_list
-        print np.asarray(index_list)[np.asarray(index_list).argsort()]
-        print data.shape
         f.write("\n")
         f.write("#--------------------------------------------------------------------------\n")
         np.savetxt(f,data[::int(len(self.vectordata.time)/Nlines),:],fmt="".join(fmt_list))
