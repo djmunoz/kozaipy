@@ -108,7 +108,10 @@ Following the model of Wu & Murray (2003), we can setup a triple that resultins 
 	  g1=45.0 * np.pi/180.0,g2=0,\
 	  type0='star',type1='planet',\
 	  spin_rate0 = 2 * np.pi/20, spin_rate1 = 2 * np.pi/0.417, # periods of 20 days and 10 hours
-	  R0=kp.constants.Rsun,R1=kp.constants.Rsun/10)
+	  R0=kp.constants.Rsun,R1=kp.constants.Rsun/10,
+	  k2_0 = 0.14, k2_1 = 0.25,
+	  rg_0 = 0.08, rg_1 = 0.25,
+	  tv0 = 54*365.25, tv1=0.001 * 365.25)
 
 
 We integrate this sytem in time including tidal friction. For that, we turn on the two options 'short_range_forces_conservative' and 'short_range_forces_dissipative'
