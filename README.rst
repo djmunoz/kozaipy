@@ -46,7 +46,7 @@ And then evolve the system for 2.5e7 years
 
 .. code:: python
 	  
-   sol = trip.integrate(timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
+   sol = trip.integrate(timemin=0.0,timemax=2.5e7*365.25,Nevals=30000,octupole_potential=True)
 
 The equations of motion are in the 'orbital vector form' (e.g., Eggleton, Kiseleva & Hut 1998; Fabrycky & Tremaine, 2007; Tremaine & Yavetz, 2014) and so is the solution output. If you want to analyze the orbital elements, first do:
 
