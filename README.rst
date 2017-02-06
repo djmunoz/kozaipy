@@ -112,7 +112,7 @@ Following the model of Wu & Murray (2003), we can setup a triple that resultins 
 	  k2_0 = 0.14, k2_1 = 0.25,
 	  rg_0 = 0.08, rg_1 = 0.25,
 	  tv0 = 54*365.25, tv1=0.001 * 365.25,
-	  spinorbit_aligned1=True)
+	  spinorbit_align1=True)
 
 
 We integrate this sytem in time including tidal friction. For that, we turn on the two options 'short_range_forces_conservative' and 'short_range_forces_dissipative'
