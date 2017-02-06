@@ -119,7 +119,7 @@ We integrate this sytem in time including tidal friction. For that, we turn on t
 
 .. code:: python
    
-   sol = trip.integrate(timemax=3.4e9*365.25,Nevals=12000,\
+   sol = trip.integrate(timemin=0.0,timemax=3.4e9*365.25,Nevals=12000,\
 	  octupole_potential=False,\
 	  short_range_forces_conservative=True, \
 	  short_range_forces_dissipative=True)
