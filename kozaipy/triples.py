@@ -45,6 +45,20 @@ triple_keys = {"e1x": None,
                "R0": None,
                "R1": None}
 
+triple_derivative_keys = {"de1x_dt": None,
+                          "de1y_dt": None,
+                          "de1z_dt": None,
+                          "dl1x_dt": None,
+                          "dl1y_dt": None,
+                          "dl1z_dt": None,
+                          "de2x_dt": None,
+                          "de2y_dt": None,
+                          "de2z_dt": None,
+                          "dl2x_dt": None,
+                          "dl2y_dt": None,
+                          "dl2z_dt": None
+                          }
+
 
 element_keys = {"a1": 0,
                 "e1": 1,
@@ -150,6 +164,20 @@ class VectorData(object):
         self.l2y = kwargs.get("l2y")
         self.l2z = kwargs.get("l2z")
 
+        # Vector derivatives
+        self.de1x_dt = None
+        self.de1y_dt = None
+        self.de1z_dt = None 
+        self.dl1x_dt = None 
+        self.dl1y_dt = None 
+        self.dl1z_dt = None 
+        self.de2x_dt = None 
+        self.de2y_dt = None 
+        self.de2z_dt = None 
+        self.dl2x_dt = None 
+        self.dl2y_dt = None 
+        self.dl2z_dt = None 
+        
 class ElementData(object):
     def __init__(self,*args,**kwargs):
         self.time = kwargs.get("time")
@@ -186,7 +214,7 @@ class TripleSolution(object):
 
     """
 
-    def __init__(self,Triple,vector_solution=None,*args,**kwargs):
+    def __init__(self,Triple,vector_solution=None,vector_derivatives=None,*args,**kwargs):
         """
         Load orbital vector data as a function of time, obtained from a numerical solution
         of the secular equations of motion.
@@ -232,13 +260,25 @@ class TripleSolution(object):
         if (vector_solution is not None):
             # data supplied at once as a matrix
             self.vectordata.time = vector_solution[:,0] 
-
-            print 'Numerical solution carried out for:'
+            
+            print '\nNumerical solution carried out for:'
             for key,val in self.vectordata.__dict__.items():
+                if key not in triple_keys: continue
                 if (key == 'time'): continue
                 if triple_keys[key] is not None:
                     print key,
                     setattr(self.vectordata, key,  vector_solution[:,1+triple_keys[key]])
+                    
+        if (vector_derivatives is not None):
+            nquant = vector_solution.shape[1]
+            print '\nTime derivatives availabile for:'
+            for key,val in self.vectordata.__dict__.items():
+                if key not in triple_derivative_keys: continue
+                related_key = key[1:-3]
+                if triple_derivative_keys[key] is not None:
+                    print related_key,
+                    setattr(self.vectordata, key,  vector_derivatives[:,triple_derivative_keys[key]-nquant])
+
 
 
 
@@ -434,75 +474,124 @@ class TripleSolution(object):
                     head_list.append(k+"\t\t")
                     data = np.column_stack((data,v))
         else:
-            for k in self.vectordata.__dict__:
-                print k
             for k,v in self.vectordata.__dict__.items():
-                if (v is not None):  
+                if (v is not None):
                     if (k == 'time'):
                         continue
-                    if (triple_keys[k] is None):
-                        continue
-                    if (k == 'e1x'):
-                        fmt_list.append('%12.8f  ')
-                        index_list.append(triple_keys['e1x'])
-                    if (k == 'e1y'):
-                        fmt_list.append('%12.8f  ')
-                        index_list.append(triple_keys['e1y'])
-                    if (k == 'e1z'):
-                        fmt_list.append('%10.8f  ')
-                        index_list.append(triple_keys['e1z'])
-                    if (k == 'l1x'):
-                        fmt_list.append('%10.8f  ')
-                        index_list.append(triple_keys['l1x'])
-                    if (k == 'l1y'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['l1y'])
-                    if (k == 'l1z'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['l1z'])
-                    if (k == 'e2x'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['e2x'])
-                    if (k == 'e2y'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['e2y'])
-                    if (k == 'e2z'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['e2z'])
-                    if (k == 'l2x'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['l2x'])
-                    if (k == 'l2y'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['l2y'])
-                    if (k == 'l2z'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['l2z'])
-                    if (k == 'Omega0'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega0'])
-                    if (k == 'Omega0x'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega0x'])
-                    if (k == 'Omega0y'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega0y'])
-                    if (k == 'Omega0z'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega0z'])
-                    if (k == 'Omega1'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega1'])                    
-                    if (k == 'Omega1x'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega1x'])
-                    if (k == 'Omega1y'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega1y'])
-                    if (k == 'Omega1z'):
-                        fmt_list.append('%10.6f  ')
-                        index_list.append(triple_keys['Omega1z'])
+                    try:
+                        if (triple_keys[k] is None):
+                            continue
+                    except KeyError:
+                        if (triple_derivative_keys[k] is None):
+                            continue
                         
+                    if (k in triple_keys):
+                        if (triple_keys[k] is None):
+                            continue
+                        if (k == 'e1x'):
+                            fmt_list.append('%12.8f  ')
+                            index_list.append(triple_keys['e1x'])
+                        if (k == 'e1y'):
+                            fmt_list.append('%12.8f  ')
+                            index_list.append(triple_keys['e1y'])
+                        if (k == 'e1z'):
+                            fmt_list.append('%10.8f  ')
+                            index_list.append(triple_keys['e1z'])
+                        if (k == 'l1x'):
+                            fmt_list.append('%10.8f  ')
+                            index_list.append(triple_keys['l1x'])
+                        if (k == 'l1y'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['l1y'])
+                        if (k == 'l1z'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['l1z'])
+                        if (k == 'e2x'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['e2x'])
+                        if (k == 'e2y'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['e2y'])
+                        if (k == 'e2z'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['e2z'])
+                        if (k == 'l2x'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['l2x'])
+                        if (k == 'l2y'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['l2y'])
+                        if (k == 'l2z'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['l2z'])
+                        if (k == 'Omega0'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega0'])
+                        if (k == 'Omega0x'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega0x'])
+                        if (k == 'Omega0y'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega0y'])
+                        if (k == 'Omega0z'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega0z'])
+                        if (k == 'Omega1'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega1'])                    
+                        if (k == 'Omega1x'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega1x'])
+                        if (k == 'Omega1y'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega1y'])
+                        if (k == 'Omega1z'):
+                            fmt_list.append('%10.6f  ')
+                            index_list.append(triple_keys['Omega1z'])
+
+                    if (k in triple_derivative_keys):
+                        if (triple_derivative_keys[k] is None):
+                            continue
+                        if (k == 'de1x_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de1x_dt'])
+                        if (k == 'de1y_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de1y_dt'])
+                        if (k == 'de1z_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de1z_dt'])
+                        if (k == 'dl1x_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl1x_dt'])
+                        if (k == 'dl1y_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl1y_dt'])
+                        if (k == 'dl1z_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl1z_dt'])
+                        if (k == 'de2x_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de2x_dt'])
+                        if (k == 'de2y_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de2y_dt'])
+                        if (k == 'de2z_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['de2z_dt'])
+                        if (k == 'dl2x_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl2x_dt'])
+                        if (k == 'dl2y_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl2y_dt'])
+                        if (k == 'dl2z_dt'):
+                            fmt_list.append('%12.8e  ')
+                            index_list.append(triple_derivative_keys['dl2z_dt'])
+
+
+                
+                
                     head_list.append(k+"\t\t")
                     data = np.column_stack((data,v)) 
 
@@ -510,7 +599,10 @@ class TripleSolution(object):
 
         # Sort the columns to obtain a consistently organized output
         f.write("".join([x for (y,x) in sorted(zip(index_list,head_list))]))
+
         data[:,1:] = data[:,1:][:,np.asarray(index_list).argsort()]
+        fmt_list = np.asarray(fmt_list)
+        fmt_list[1:] = fmt_list[1:][np.asarray(index_list).argsort()]
         f.write("\n")
         f.write("#--------------------------------------------------------------------------\n")
         np.savetxt(f,data[::int(len(self.vectordata.time)/Nlines),:],fmt="".join(fmt_list))
@@ -765,14 +857,21 @@ class Triple(object):
         #        triple_keys['R1'] = jj 
         #        jj+=1
         
-            
+        jj+=1
+        triple_derivative_keys['de1x_dt'],triple_derivative_keys['de1y_dt'],triple_derivative_keys['de1z_dt'] =  jj + 0, jj + 1, jj + 2
+        triple_derivative_keys['dl1x_dt'],triple_derivative_keys['dl1y_dt'],triple_derivative_keys['dl1z_dt'] =  jj + 3, jj + 4, jj + 5
+        jj+=6
+        triple_derivative_keys['de2x_dt'],triple_derivative_keys['de2y_dt'],triple_derivative_keys['de2z_dt'] =  jj + 0, jj + 1, jj + 2
+        triple_derivative_keys['dl2x_dt'],triple_derivative_keys['dl2y_dt'],triple_derivative_keys['dl2z_dt'] =  jj + 3, jj + 4, jj + 5
+        
         return vector
                
     def integrate(self,timemin,timemax,Nevals,octupole_potential= True,
                   short_range_forces_conservative=False,
                   short_range_forces_dissipative = False,
                   solve_for_spin_vector = False,
-                  version = 'tides'):
+                  version = 'tides',
+                  add_derivatives = False):
         """
         Integrate the system forward in time
 
@@ -789,10 +888,14 @@ class Triple(object):
                                            short_range_forces_conservative=short_range_forces_conservative,
                                            short_range_forces_dissipative=short_range_forces_dissipative,
                                            solve_for_spin_vector = solve_for_spin_vector,
-                                           version=version)
-        
-        triple_solution = TripleSolution(self,vector_solution = solution)
-        
+                                           version=version,
+                                           add_derivatives = add_derivatives)
+
+        if (add_derivatives):
+            triple_solution = TripleSolution(self,vector_solution = solution[0],vector_derivatives = solution[1])
+        else:
+            triple_solution = TripleSolution(self,vector_solution = solution)
+            
         return triple_solution
 
 

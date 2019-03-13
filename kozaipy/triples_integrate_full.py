@@ -18,6 +18,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                           extra_forces_dissipative,
                           solve_for_spin_vector):
 
+
     #####################################################################
     #time-dependent variables ###########################################
     
@@ -44,7 +45,6 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
         houtz = y[jj+5]
         jj+=6
 
-            
     # for the spin (specific) angular momenta
     if (solve_for_spin_vector):
         if (triples.triple_data['spin0']):
@@ -783,6 +783,7 @@ def threebody_ode_vf_full_modified(t,y,m0,m1,m2,
                                    extra_forces_conservative,
                                    extra_forces_dissipative,
                                    solve_for_spin_vector):
+
 
     return threebody_ode_vf_full(y,t,m0,m1,m2,
                                  radius0, radius1,

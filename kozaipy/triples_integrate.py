@@ -46,7 +46,8 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
                             solve_for_spin_vector=False,
                             version = 'tides',
                             tol = 1.0e-10,
-                            integrator='scipy'):
+                            integrator='scipy',
+                            add_derivatives = False):
 
 
     atol = tol  
@@ -97,6 +98,14 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
             sol =integ.odeint(threebody_ode_vf_full_modified,ics,time,\
                               args=params,\
                               atol=atol,rtol=rtol,mxstep=1000000,hmin=0.000000001,mxords=12,mxordn=10)
+            if (add_derivatives):
+                for kk,y in enumerate(sol):
+                    if (kk == 0):
+                        dsol_dt = threebody_ode_vf_full_modified(y,time[kk],*params)[:len(triples.triple_derivative_keys)]
+                    else:
+                        dsol_dt = np.vstack((dsol_dt,threebody_ode_vf_full_modified(y,time[kk],*params)[:len(triples.triple_derivative_keys)]))
+
+
     else:
         if (version == 'tides'):
             params = [p for p in params if p is not None]
@@ -117,7 +126,13 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
 
         print time.shape,sol.shape
         print time[0], time[-1]
-    return np.column_stack((time,sol))
+
+    retval = np.column_stack((time,sol))
+
+    if add_derivatives: retval = retval, dsol_dt
+    
+    return retval
+
 
 
 
