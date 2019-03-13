@@ -18,7 +18,6 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
                           extra_forces_dissipative,
                           solve_for_spin_vector):
 
-    
     #####################################################################
     #time-dependent variables ###########################################
     
@@ -410,6 +409,15 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
 
     deinz_dt =  norbit_in * coeff_ein * (nindotnout * uincrossnout_z  + 2 * nincrossuin_z - 5 * uindotnout * nincrossnout_z)
 
+    '''
+    if (ein < 1.e-3):
+        deinx_dt =  norbit_in * coeff_ein * (nindotnout * uincrossnout_x)
+        
+        deiny_dt =  norbit_in * coeff_ein * (nindotnout * uincrossnout_y)
+        
+        deinz_dt =  norbit_in * coeff_ein * (nindotnout * uincrossnout_z)
+    '''
+    
     
     coeff_hin = L_in * 0.75 * epsilon_out
     

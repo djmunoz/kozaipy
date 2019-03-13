@@ -255,10 +255,14 @@ class TripleSolution(object):
         self.elementdata.I1 = np.arccos(self.vectordata.l1z[:]/np.sqrt(self.vectordata.l1x[:]**2 + self.vectordata.l1y[:]**2 + self.vectordata.l1z[:]**2))
         self.elementdata.h1 = np.arctan2(self.vectordata.l1x[:],-self.vectordata.l1y[:])
         self.elementdata.g1 = np.arctan2((-self.vectordata.e1x[:] * np.sin(self.elementdata.h1[:]) + \
-                                           self.vectordata.e1y[:] * np.cos(self.elementdata.h1[:]))* np.cos(self.elementdata.I1[:]) +\
-                                          self.vectordata.e1z[:] * np.sin(self.elementdata.I1[:]),
-                                          self.vectordata.e1x[:] * np.cos(self.elementdata.h1[:]) + self.vectordata.e1y * np.sin(self.elementdata.h1[:]))
-
+                                          self.vectordata.e1y[:] * np.cos(self.elementdata.h1[:]))* np.cos(self.elementdata.I1[:]) +\
+                                         self.vectordata.e1z[:] * np.sin(self.elementdata.I1[:]),
+                                         self.vectordata.e1x[:] * np.cos(self.elementdata.h1[:]) + self.vectordata.e1y * np.sin(self.elementdata.h1[:]))
+        #self.elementdata.g1 = np.arctan2(self.vectordata.e1z[:] * np.sqrt(1 - self.elementdata.e1**2),\
+        #                                 np.sqrt((1 - self.elementdata.e1**2) * (self.vectordata.e1x[:]**2 + self.vectordata.e1y[:]**2) -\
+        #                                         self.elementdata.e1**2 * self.vectordata.l1z[:]**2/constants.G /(self.triple.m0 + self.triple.m1) / \
+        #                                         self.elementdata.a1))
+        
         # for the outer orbit
         self.elementdata.e2 = np.sqrt(self.vectordata.e2x[:]**2 + self.vectordata.e2y[:]**2 + self.vectordata.e2z[:]**2)
         self.elementdata.a2 = (self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2)/constants.G /\
@@ -385,50 +389,124 @@ class TripleSolution(object):
 
         data = self.vectordata.time.reshape(len(self.vectordata.time),1)
         fmt_list.append('%13.8e  ')
+
+        if (self.elementdata.a1 is not None):
+            for k,v in self.elementdata.__dict__.items():
+                if (v is not None):
+                    if (k == 'time'):
+                        continue
+                    if (k == 'a1'):
+                        fmt_list.append('%12.8f  ')
+                        index_list.append(element_keys['a1'])
+                    if (k == 'a2'):
+                        fmt_list.append('%12.8f  ')
+                        index_list.append(element_keys['a2'])
+                    if (k == 'e1'):
+                        fmt_list.append('%10.8f  ')
+                        index_list.append(element_keys['e1'])
+                    if (k == 'e2'):
+                        fmt_list.append('%10.8f  ')
+                        index_list.append(element_keys['e2'])
+                    if (k == 'I1'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['I1'])
+                    if (k == 'I2'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['I2'])
+                    if (k == 'g1'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['g1'])
+                    if (k == 'g2'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['g2'])
+                    if (k == 'h1'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['h1'])
+                    if (k == 'h2'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(element_keys['h2'])
+                    if ('spin' in k):
+                        fmt_list.append('%12.6f  ')
+                        index_list.append(element_keys[k])
+                    if ('Omega' in k):
+                        fmt_list.append('%12.6f  ')
+                        index_list.append(element_keys[k])
+                    head_list.append(k+"\t\t")
+                    data = np.column_stack((data,v))
+        else:
+            for k in self.vectordata.__dict__:
+                print k
+            for k,v in self.vectordata.__dict__.items():
+                if (v is not None):  
+                    if (k == 'time'):
+                        continue
+                    if (triple_keys[k] is None):
+                        continue
+                    if (k == 'e1x'):
+                        fmt_list.append('%12.8f  ')
+                        index_list.append(triple_keys['e1x'])
+                    if (k == 'e1y'):
+                        fmt_list.append('%12.8f  ')
+                        index_list.append(triple_keys['e1y'])
+                    if (k == 'e1z'):
+                        fmt_list.append('%10.8f  ')
+                        index_list.append(triple_keys['e1z'])
+                    if (k == 'l1x'):
+                        fmt_list.append('%10.8f  ')
+                        index_list.append(triple_keys['l1x'])
+                    if (k == 'l1y'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['l1y'])
+                    if (k == 'l1z'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['l1z'])
+                    if (k == 'e2x'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['e2x'])
+                    if (k == 'e2y'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['e2y'])
+                    if (k == 'e2z'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['e2z'])
+                    if (k == 'l2x'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['l2x'])
+                    if (k == 'l2y'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['l2y'])
+                    if (k == 'l2z'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['l2z'])
+                    if (k == 'Omega0'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega0'])
+                    if (k == 'Omega0x'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega0x'])
+                    if (k == 'Omega0y'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega0y'])
+                    if (k == 'Omega0z'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega0z'])
+                    if (k == 'Omega1'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega1'])                    
+                    if (k == 'Omega1x'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega1x'])
+                    if (k == 'Omega1y'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega1y'])
+                    if (k == 'Omega1z'):
+                        fmt_list.append('%10.6f  ')
+                        index_list.append(triple_keys['Omega1z'])
+                        
+                    head_list.append(k+"\t\t")
+                    data = np.column_stack((data,v)) 
+
         
-        for k,v in self.elementdata.__dict__.items():
-            if (v is not None):
-                if (k == 'time'):
-                    continue
-                if (k == 'a1'):
-                    fmt_list.append('%12.8f  ')
-                    index_list.append(element_keys['a1'])
-                if (k == 'a2'):
-                    fmt_list.append('%12.8f  ')
-                    index_list.append(element_keys['a2'])
-                if (k == 'e1'):
-                    fmt_list.append('%10.8f  ')
-                    index_list.append(element_keys['e1'])
-                if (k == 'e2'):
-                    fmt_list.append('%10.8f  ')
-                    index_list.append(element_keys['e2'])
-                if (k == 'I1'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['I1'])
-                if (k == 'I2'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['I2'])
-                if (k == 'g1'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['g1'])
-                if (k == 'g2'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['g2'])
-                if (k == 'h1'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['h1'])
-                if (k == 'h2'):
-                    fmt_list.append('%10.6f  ')
-                    index_list.append(element_keys['h2'])
-                if ('spin' in k):
-                    fmt_list.append('%12.6f  ')
-                    index_list.append(element_keys[k])
-                if ('Omega' in k):
-                    fmt_list.append('%12.6f  ')
-                    index_list.append(element_keys[k])
-                    
-                head_list.append(k+"\t\t")
-                data = np.column_stack((data,v))
 
         # Sort the columns to obtain a consistently organized output
         f.write("".join([x for (y,x) in sorted(zip(index_list,head_list))]))
@@ -483,8 +561,8 @@ class Triple(object):
         # Bodies' properties
         self.properties0.radius = kwargs.get("R0") # radius of primary
         self.properties1.radius = kwargs.get("R1") # radius of secondary
-        self.properties0.gyroradius = kwargs.get("rg0") # radius of primary
-        self.properties1.gyroradius = kwargs.get("rg1") # radius of secondary
+        self.properties0.gyroradius = kwargs.get("rg0") # gyroradius of primary
+        self.properties1.gyroradius = kwargs.get("rg1") # gyroradius of secondary
         self.properties0.apsidal_constant = kwargs.get("k2_0") 
         self.properties1.apsidal_constant = kwargs.get("k2_1") 
         self.properties0.viscous_time = kwargs.get("tv0") 
