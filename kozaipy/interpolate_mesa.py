@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
-from string import split
-from triples import *
+from .triples import *
 import os
 
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -66,7 +65,7 @@ def interpolate_planet_radius():
                 nread = int(line)
                 nlines+=1
                 continue
-            data = split(line)
+            data = line.split()
             t.append(float(data[0]))
             R.append(float(data[1]))
             nlines+=1

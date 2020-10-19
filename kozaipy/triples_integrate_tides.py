@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.integrate as integ
-import triples
+import kozaipy.triples as triples
 #import bsint
 
 def threebody_ode_vf_tides(t,y,\

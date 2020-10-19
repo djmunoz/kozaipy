@@ -1,8 +1,9 @@
 import numpy as np
 import scipy.integrate as integ
-import triples
-from triples_integrate_full import *
-from triples_integrate_tides import *
+import kozaipy.triples as triples
+from .triples_integrate_full import *
+from .triples_integrate_tides import *
+from .triples_integrate_single_average import *
 #import bsint
 
 
@@ -124,8 +125,6 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
             kk+=1
         sol = np.asarray(sol)
 
-        print time.shape,sol.shape
-        print time[0], time[-1]
 
     retval = np.column_stack((time,sol))
 
@@ -137,4 +136,68 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
 
 
 
+def integrate_triple_system_sa(ics,timemin,timemax,Nevals,
+                               body0, body1, body2,
+                               octupole_potential = True,
+                               short_range_forces_conservative= False,
+                               short_range_forces_dissipative = False,
+                               solve_for_spin_vector=False,
+                               fix_outer_orbit = True,
+                               tol = 1.0e-10):
 
+
+    if (fix_outer_orbit):
+        # turn off integration of external orbit
+        triples.triple_keys['e2x'], triples.triple_keys['e2y'], triples.triple_keys['e2z'] =  None, None, None
+        triples.triple_keys['l2x'], triples.triple_keys['l2y'], triples.triple_keys['l2z'] =  None, None, None
+
+    m0,m1,m2 = body0.mass, body1.mass, body2.mass
+    radius0, radius1 = body0.radius, body1.radius
+    dradius0_dt, dradius1_dt = body0.dradius_dt, body1.dradius_dt
+    gyroradius0, gyroradius1 = body0.gyroradius, body1.gyroradius
+    dgyroradius0_dt, dgyroradius1_dt = body0.dgyroradius_dt, body1.dgyroradius_dt
+    k2_0, k2_1 = body0.apsidal_constant, body1.apsidal_constant
+    tv0, tv1 = body0.viscous_time, body1.viscous_time
+    tauconv0, tauconv1 = body0.convective_time, body1.convective_time
+    tlag0, tlag1 = body0.tidal_lag_time, body1.tidal_lag_time
+
+    rtol,atol = np.zeros(len(ics)),np.zeros(len(ics))
+    for key,val in triples.triple_keys.items():
+        if val is not None:
+            rtol[val] = 10*triple_precision[key]
+            atol[val] = triple_precision[key]
+    
+    params = m0,m1,m2,radius0,radius1,gyroradius0,gyroradius1,k2_0,k2_1,\
+             tv0,tv1,tauconv0,tauconv1,\
+             tlag0,tlag1,\
+             dradius0_dt, dradius1_dt,\
+             dgyroradius0_dt, dgyroradius1_dt,\
+             octupole_potential,\
+             short_range_forces_conservative,short_range_forces_dissipative,solve_for_spin_vector    
+
+
+    
+    if (fix_outer_orbit):
+        new_params = ics[6:12]
+        ics = np.append(ics[0:6],ics[12:])
+        rtol = np.append(rtol[0:6],rtol[12:])
+        atol = np.append(atol[0:6],atol[12:])
+        for p in params: new_params.append(p)
+        params = tuple(new_params)
+
+
+
+
+        
+    time = np.linspace(timemin,timemax,Nevals)
+
+
+    sol =integ.odeint(threebody_ode_vf_sa,ics,time,\
+                      args=params,\
+                      mxstep=1000000,hmin=0.000000001,mxords=12,mxordn=10)
+                      #atol=atol,rtol=rtol)#,
+
+    
+    retval = np.column_stack((time,sol))
+
+    return retval

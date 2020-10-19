@@ -1,7 +1,7 @@
 from math import sqrt, pi,log10
 from numpy import inf
 import scipy.integrate as integ
-import triples
+import kozaipy.triples as triples
 #import bsint
 
 def threebody_ode_vf_full(t,y,m0,m1,m2,
@@ -426,6 +426,7 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
     dhiny_dt =  norbit_in * coeff_hin * (one_minus_einsq * nindotnout * nincrossnout_y - 5 * ein_squared * uindotnout * uincrossnout_y)
                                       
     dhinz_dt =  norbit_in * coeff_hin * (one_minus_einsq * nindotnout * nincrossnout_z - 5 * ein_squared * uindotnout * uincrossnout_z)
+
     
 
     # For the outer orbit

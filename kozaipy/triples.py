@@ -2,10 +2,10 @@
 This module defines data structure for hierarchical triple systems.
 
 """
-
+from __future__ import print_function
 import numpy as np
 import numpy.random as rd
-from triples_integrate import integrate_triple_system
+from .triples_integrate import integrate_triple_system, integrate_triple_system_sa
 
 
 rd.seed(42)
@@ -257,26 +257,27 @@ class TripleSolution(object):
         self.vectordata.l2y = kwargs.get("l2y")
         self.vectordata.l2z = kwargs.get("l2z")
 
+
         if (vector_solution is not None):
             # data supplied at once as a matrix
             self.vectordata.time = vector_solution[:,0] 
             
-            print '\nNumerical solution carried out for:'
+            print('\nNumerical solution carried out for:')
             for key,val in self.vectordata.__dict__.items():
                 if key not in triple_keys: continue
                 if (key == 'time'): continue
                 if triple_keys[key] is not None:
-                    print key,
+                    print(key,)
                     setattr(self.vectordata, key,  vector_solution[:,1+triple_keys[key]])
                     
         if (vector_derivatives is not None):
             nquant = vector_solution.shape[1]
-            print '\nTime derivatives availabile for:'
+            print('\nTime derivatives availabile for:')
             for key,val in self.vectordata.__dict__.items():
                 if key not in triple_derivative_keys: continue
                 related_key = key[1:-3]
                 if triple_derivative_keys[key] is not None:
-                    print related_key,
+                    print(related_key,)
                     setattr(self.vectordata, key,  vector_derivatives[:,triple_derivative_keys[key]-nquant])
 
 
@@ -304,24 +305,48 @@ class TripleSolution(object):
         #                                         self.elementdata.a1))
         
         # for the outer orbit
-        self.elementdata.e2 = np.sqrt(self.vectordata.e2x[:]**2 + self.vectordata.e2y[:]**2 + self.vectordata.e2z[:]**2)
-        self.elementdata.a2 = (self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2)/constants.G /\
-                              (self.triple.m0 + self.triple.m1 + self.triple.m2) / (1 - self.elementdata.e2[:] * self.elementdata.e2[:])
-        self.elementdata.I2 = np.arccos(self.vectordata.l2z[:]/np.sqrt(self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2))
-        self.elementdata.h2 = np.arctan2(self.vectordata.l2x[:],-self.vectordata.l2y[:])
-        self.elementdata.g2 = np.arctan2((-self.vectordata.e2x[:] * np.sin(self.elementdata.h2[:]) + \
-                                           self.vectordata.e2y[:] * np.cos(self.elementdata.h2[:]))* np.cos(self.elementdata.I2[:]) +\
-                                          self.vectordata.e2z[:] * np.sin(self.elementdata.I2[:]),
-                                          self.vectordata.e2x[:] * np.cos(self.elementdata.h2[:]) + self.vectordata.e2y * np.sin(self.elementdata.h2[:]))
+        try:
+            self.elementdata.e2 = np.sqrt(self.vectordata.e2x[:]**2 + self.vectordata.e2y[:]**2 + self.vectordata.e2z[:]**2)
+        except TypeError:
+            pass
+        try:
+            self.elementdata.a2 = (self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2)/constants.G /\
+                (self.triple.m0 + self.triple.m1 + self.triple.m2) / (1 - self.elementdata.e2[:] * self.elementdata.e2[:])
+        except TypeError:
+            pass
+        try:
+            self.elementdata.I2 = np.arccos(self.vectordata.l2z[:]/np.sqrt(self.vectordata.l2x[:]**2 + self.vectordata.l2y[:]**2 + self.vectordata.l2z[:]**2))
+        except TypeError:
+            pass
+        try:
+            self.elementdata.h2 = np.arctan2(self.vectordata.l2x[:],-self.vectordata.l2y[:])
+        except TypeError:
+            pass
+        try:
+            self.elementdata.g2 = np.arctan2((-self.vectordata.e2x[:] * np.sin(self.elementdata.h2[:]) + \
+                                              self.vectordata.e2y[:] * np.cos(self.elementdata.h2[:]))* np.cos(self.elementdata.I2[:]) +\
+                                             self.vectordata.e2z[:] * np.sin(self.elementdata.I2[:]),
+                                             self.vectordata.e2x[:] * np.cos(self.elementdata.h2[:]) + self.vectordata.e2y * np.sin(self.elementdata.h2[:]))
+        except TypeError:
+            pass
 
         
         if (to_degrees):
             self.elementdata.I1 *= 180.0 / np.pi 
             self.elementdata.h1 *= 180.0 / np.pi 
-            self.elementdata.g1 *= 180.0 / np.pi 
-            self.elementdata.I2 *= 180.0 / np.pi 
-            self.elementdata.h2 *= 180.0 / np.pi 
-            self.elementdata.g2 *= 180.0 / np.pi              
+            self.elementdata.g1 *= 180.0 / np.pi
+            try:
+                self.elementdata.I2 *= 180.0 / np.pi
+            except TypeError:
+                pass
+            try:
+                self.elementdata.h2 *= 180.0 / np.pi
+            except TypeError:
+                pass
+            try:
+                self.elementdata.g2 *= 180.0 / np.pi
+            except TypeError:
+                pass
 
         if (self.vectordata.spin0x is not None):
             self.elementdata.spin0x = self.vectordata.spin0x
@@ -408,7 +433,7 @@ class TripleSolution(object):
                                                     self.vectordata.Omega0x,self.vectordata.Omega0y,self.vectordata.Omega0z,
                                                     self.vectordata.Omega1x,self.vectordata.Omega1y,self.vectordata.Omega1z)
 
-        print angular_momentum.shape
+
         self.angular_momentumx = angular_momentum[:,0]
         self.angular_momentumy = angular_momentum[:,1]
         self.angular_momentumz = angular_momentum[:,2]
@@ -649,6 +674,8 @@ class Triple(object):
 
         self.spinorbit_align0 =  kwargs.get("spinorbit_align0")
         self.spinorbit_align1 =  kwargs.get("spinorbit_align1")
+
+        
         
         # Bodies' properties
         self.properties0.radius = kwargs.get("R0") # radius of primary
@@ -731,13 +758,16 @@ class Triple(object):
                 gyroradius0 = self.properties0.gyroradius
 
             deltah_0, deltaI_0 = rd.random()*np.pi*0.001,rd.random()*np.pi*0.001
-            self.Omega0 = [self.spin_rate0 * np.sin(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0),
+            Omega0 = [self.spin_rate0 * np.sin(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0),
                           -self.spin_rate0 * np.cos(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0), 
                            self.spin_rate0 * np.cos(self.I1 + deltaI_0)]
                 
             if (radius0 is not None):
                 I0 = gyroradius0 * self.m0 * radius0 * radius0
-                self.spin0 = [self.Omega0[0] * I0, self.Omega0[1] * I0, self.Omega0[2] * I0]
+                self.spin0 = [Omega0[0] * I0, Omega0[1] * I0, Omega0[2] * I0]
+            if (self.Omega0 is None):
+                self.Omega0 = [Omega0[0], Omega0[1], Omega0[2]]
+                
                 
         if (self.spin1 is None) & (self.properties1.mass_type != 'pointmass'):
             if callable(self.properties1.radius):
@@ -791,7 +821,7 @@ class Triple(object):
                 l2x,l2y,l2z]
     
 
-    def set_ics(self,spin_vector=False):
+    def set_ics(self,spin_vector=False, fix_outer_orbit = False):
         """
         Set the initial conditions to be used by the integrations routines.
 
@@ -801,9 +831,11 @@ class Triple(object):
         triple_keys['e1x'],triple_keys['e1y'],triple_keys['e1z'] =  jj + 0, jj + 1, jj + 2
         triple_keys['l1x'],triple_keys['l1y'],triple_keys['l1z'] =  jj + 3, jj + 4, jj + 5
         jj+=6
-        triple_keys['e2x'],triple_keys['e2y'],triple_keys['e2z'] =  jj + 0, jj + 1, jj + 2
-        triple_keys['l2x'],triple_keys['l2y'],triple_keys['l2z'] =  jj + 3, jj + 4, jj + 5
-        jj+=6
+
+        if not (fix_outer_orbit):
+            triple_keys['e2x'],triple_keys['e2y'],triple_keys['e2z'] =  jj + 0, jj + 1, jj + 2
+            triple_keys['l2x'],triple_keys['l2y'],triple_keys['l2z'] =  jj + 3, jj + 4, jj + 5
+            jj+=6
         
         if not (self.properties0.mass_type == 'pointmass'):
             if not (self.pseudosynch0): 
@@ -863,7 +895,7 @@ class Triple(object):
         jj+=6
         triple_derivative_keys['de2x_dt'],triple_derivative_keys['de2y_dt'],triple_derivative_keys['de2z_dt'] =  jj + 0, jj + 1, jj + 2
         triple_derivative_keys['dl2x_dt'],triple_derivative_keys['dl2y_dt'],triple_derivative_keys['dl2z_dt'] =  jj + 3, jj + 4, jj + 5
-        
+
         return vector
                
     def integrate(self,timemin,timemax,Nevals,octupole_potential= True,
@@ -898,6 +930,34 @@ class Triple(object):
             
         return triple_solution
 
+    def integrate_sa(self,timemin,timemax,Nevals,octupole_potential= True,
+                     short_range_forces_conservative=False,
+                     short_range_forces_dissipative = False,
+                     solve_for_spin_vector = False,
+                     version = 'tides',
+                     fix_outer_orbit = False,
+                     add_derivatives = False):
+        """
+
+        Integrate the system forward in time using the single-average approximation
+
+        """
+
+        #self.check_validity_bodies()
+        
+        vector_ics = self.set_ics(fix_outer_orbit=True)
+
+        
+        solution = integrate_triple_system_sa(vector_ics,timemin,timemax,Nevals,
+                                              self.properties0,self.properties1,self.properties2,
+                                              octupole_potential=octupole_potential,\
+                                              short_range_forces_conservative=short_range_forces_conservative,
+                                              short_range_forces_dissipative=short_range_forces_dissipative,
+                                              solve_for_spin_vector = solve_for_spin_vector,
+                                              fix_outer_orbit = fix_outer_orbit)
+
+        triple_solution = TripleSolution(self,vector_solution = solution)
+        return triple_solution
 
     
 def compute_quadrupole_potential(m0,m1,m2,e1x,e1y,e1z,l1x,l1y,l1z,e2x,e2y,e2z,l2x,l2y,l2z):
