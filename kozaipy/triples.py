@@ -450,7 +450,8 @@ class TripleSolution(object):
         fmt_list = []
         head_list = []
         index_list = []
-        f.write("# time\t\t")
+        f.write("#m0={0:.8f},m1={1:.8f},m2={2:.8f}\n".format(self.triple.m0,self.triple.m1,self.triple.m2))
+        f.write("#time\t\t")
 
         data = self.vectordata.time.reshape(len(self.vectordata.time),1)
         fmt_list.append('%13.8e  ')
@@ -747,7 +748,8 @@ class Triple(object):
             elif (self.properties1.mass_type == 'planet'): self.properties1.gyroradius = get_gyroradius_planet(self.properties1.mass)
         
         # Compute the default spin *orientations*
-        if (self.spin0 is None) & (self.properties0.mass_type != 'pointmass'):
+
+        if (self.properties0.mass_type != 'pointmass'):
             if callable(self.properties0.radius):
                 radius0 = self.properties0.radius(0)
             else:
@@ -757,17 +759,22 @@ class Triple(object):
             else:
                 gyroradius0 = self.properties0.gyroradius
 
-            deltah_0, deltaI_0 = rd.random()*np.pi*0.001,rd.random()*np.pi*0.001
-            Omega0 = [self.spin_rate0 * np.sin(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0),
+
+            if (self.spin0 is None):
+                deltah_0, deltaI_0 = rd.random()*np.pi*0.001,rd.random()*np.pi*0.001
+                Omega0 = [self.spin_rate0 * np.sin(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0),
                           -self.spin_rate0 * np.cos(self.h1 + deltah_0) * np.sin(self.I1 + deltaI_0), 
-                           self.spin_rate0 * np.cos(self.I1 + deltaI_0)]
-                
-            if (radius0 is not None):
-                I0 = gyroradius0 * self.m0 * radius0 * radius0
-                self.spin0 = [Omega0[0] * I0, Omega0[1] * I0, Omega0[2] * I0]
-            if (self.Omega0 is None):
-                self.Omega0 = [Omega0[0], Omega0[1], Omega0[2]]
-                
+                          self.spin_rate0 * np.cos(self.I1 + deltaI_0)]
+                if (radius0 is not None):
+                    I0 = gyroradius0 * self.m0 * radius0 * radius0
+                    self.spin0 = [Omega0[0] * I0, Omega0[1] * I0, Omega0[2] * I0]
+                if (self.Omega0 is None):
+                    self.Omega0 = [Omega0[0], Omega0[1], Omega0[2]]
+            else:
+                if (radius0 is not None):
+                    I0 = gyroradius0 * self.m0 * radius0 * radius0
+                    Omega0 = [self.spin0[0]/I0,self.spin0[1]/I0,self.spin0[2]/I0]
+
                 
         if (self.spin1 is None) & (self.properties1.mass_type != 'pointmass'):
             if callable(self.properties1.radius):
@@ -910,8 +917,8 @@ class Triple(object):
         """
 
         #self.check_validity_bodies()
-        
-        vector_ics = self.set_ics()
+        print(self.Omega0)
+        vector_ics = self.set_ics(spin_vector=solve_for_spin_vector)
 
         
         solution = integrate_triple_system(vector_ics,timemin,timemax,Nevals,
@@ -959,6 +966,30 @@ class Triple(object):
         triple_solution = TripleSolution(self,vector_solution = solution)
         return triple_solution
 
+def read_file(filename):
+
+    with open(filename) as f:
+        line1 = next(f).strip('\n')
+        line2 = next(f).strip('\n')
+        if (line1[0] == '#'):
+            header = line1[1:].split(',')
+        if (line2[0] == '#'):
+            columns = line2[1:].split('\t')
+    columns = [x for x in columns if x != '']
+    masses=[]
+    for h in header:
+        masses.append(float(h.split('=')[1]))
+    print(masses)
+    print(columns)
+    sol = TripleSolution(Triple=Triple(m0=masses[0],m1=masses[1],m2=masses[2]))
+    data = np.loadtxt(filename)
+    
+    for key,val in sol.vectordata.__dict__.items():
+        if (key in columns):
+            ind = columns.index(key)
+            setattr(sol.vectordata, key,  data[:,ind])
+    return sol
+    
     
 def compute_quadrupole_potential(m0,m1,m2,e1x,e1y,e1z,l1x,l1y,l1z,e2x,e2y,e2z,l2x,l2y,l2z):
 

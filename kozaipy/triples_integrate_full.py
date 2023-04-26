@@ -358,9 +358,9 @@ def threebody_ode_vf_full(t,y,m0,m1,m2,
             else:
                 timelag1 = 0   
 
+            
             tf0 = m0 /m1 / size_ratio0_fifth / norbit_in /norbit_in / timelag0 /6 / k2_0
             tf1 = m1 /m0 / size_ratio1_fifth / norbit_in /norbit_in / timelag1 /6 / k2_1
-
             
             V0 += 9.0 / tf0 * (f3 / one_minus_einsq_fifth/one_minus_einsq/one_minus_einsq_sqrt - \
                                11.0/18 * Omega0_n / norbit_in * f4 / one_minus_einsq_fifth)

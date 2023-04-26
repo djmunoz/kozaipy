@@ -222,18 +222,21 @@ def threebody_ode_vf_tides(t,y,\
 
         if (extra_forces_dissipative):
 
-            tf0 = tv0/9 / size_ratio0_eighth * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k2_0)**2 
-            tf1 = tv1/9 / size_ratio1_eighth * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k2_1)**2 
-            
-            timelag0 = 1.5 / tv0 * R0 * R0 * R0 / triples.constants.G / m0 * (1 + 2 * k2_0)**2/ k2_0
-            timelag1 = 1.5 / tv1 * R1 * R1 * R1 / triples.constants.G / m1 * (1 + 2 * k2_1)**2/ k2_1
+            if (tv0 is not None):
+                timelag0 = 1.5 / tv0 * R0 * R0 * R0 / triples.constants.G / m0 * (1 + 2 * k2_0)**2/ k2_0
+            if (tv1 is not None):
+                timelag1 = 1.5 / tv1 * R1 * R1 * R1 / triples.constants.G / m1 * (1 + 2 * k2_1)**2/ k2_1
 
-            #print timelag0/365.25,timelag1/365.25
-            #print timelag0*86400,timelag1*86400
+            #tf0 = tv0/9 / size_ratio0_eighth * m0**2 / ((m0 + m1)*m1) / (1 + 2 * k2_0)**2 
+            #tf1 = tv1/9 / size_ratio1_eighth * m1**2 / ((m0 + m1)*m0) / (1 + 2 * k2_1)**2 
             
-            #tf0 = m0 /m1 / size_ratio0_fifth / norbit_in /norbit_in / timelag0 /6 / k2_0
-            #tf1 = m1 /m0 / size_ratio1_fifth / norbit_in /norbit_in / timelag1 /6 / k2_1
+            #timelag0 = 1.5 / tv0 * R0 * R0 * R0 / triples.constants.G / m0 * (1 + 2 * k2_0)**2/ k2_0
+            #timelag1 = 1.5 / tv1 * R1 * R1 * R1 / triples.constants.G / m1 * (1 + 2 * k2_1)**2/ k2_1
 
+            #print(timelag0,tv0,timelag1,tv1)
+            
+            tf0 = m0 /m1 / size_ratio0_fifth / norbit_in /norbit_in / timelag0 /6 / k2_0
+            tf1 = m1 /m0 / size_ratio1_fifth / norbit_in /norbit_in / timelag1 /6 / k2_1
 
             
             #if (t > 3.01e9 *365.25): print t,tf0,tf1,size_ratio0,size_ratio1 

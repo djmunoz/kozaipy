@@ -88,6 +88,7 @@ def integrate_triple_system(ics,timemin,timemax,Nevals,
 
     if (integrator == 'scipy'):
         if (version == 'tides'):
+
             params = m0,m1,m2,radius0,radius1,gyroradius0,gyroradius1,k2_0,k2_1,tv0,tv1,\
                      octupole_potential,\
                      short_range_forces_conservative,short_range_forces_dissipative,solve_for_spin_vector    
